@@ -22,6 +22,8 @@ python -m http.server 8770
 
 ## 完整后端部署到 Render（免费层）
 
+**一键 Blueprint：** https://render.com/deploy?repo=https://github.com/jonhate/probability-exam-sprint
+
 1. 用 GitHub 登录 [Render](https://render.com)。
 2. New → Blueprint → 选择本仓库。
 3. Render 会读取根目录的 `render.yaml`，构建 `server/Dockerfile`。
