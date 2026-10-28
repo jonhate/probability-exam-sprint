@@ -3,6 +3,11 @@
 This folder is the optional cloud version of the local app. It contains the
 Python backend, the preloaded probability pack, and the generated web assets.
 
+The full app supports a course library: click the course name in the top-left
+to create or switch courses. PPT + homework only is supported; without past
+papers the ranking is marked low-confidence and uses homework 40% + PPT 40% +
+prerequisites 20%.
+
 ## Render free deployment
 
 1. Create a Render account with GitHub.
