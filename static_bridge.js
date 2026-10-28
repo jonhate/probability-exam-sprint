@@ -163,7 +163,7 @@
     body.static-mode [data-action="save-project-settings"],
     body.static-mode .dropzone,
     body.static-mode [data-export] { display:none !important; }
-    body.static-mode .topbar-sub::after { content:" · 静态网页"; color:var(--accent); }
+    body.static-mode .topbar-sub::after { content:" · 静态网页（仅当前课程）"; color:var(--accent); }
     body.static-mode .course-line { pointer-events:none; cursor:default; }
     body.static-mode .course-caret { display:none; }
   `;
