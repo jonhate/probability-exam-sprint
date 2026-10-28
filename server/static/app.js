@@ -151,7 +151,7 @@
   function renderChrome() {
     const p = S.data?.project || {};
     const a = analysis();
-    $("#courseLine").textContent = a?.course || p.course || "我的课程";
+    $("#courseLine").innerHTML = `${esc(a?.course || p.course || "我的课程")} <span class="course-caret">⌄</span>`;
     const modeLabel = a?.zero_base?.enabled ? "零基础模式" : a?.generation?.mode === "llm" ? "AI 已生成" : a?.generation?.mode === "curated" ? "真题精编" : "离线框架";
     $("#topbarSub").textContent = a
       ? `${a.topics?.length || 0} 个考点 · 准备度 ${insights().readiness || 0}% · ${modeLabel}`
@@ -1014,6 +1014,7 @@
         <div class="upload-list" style="max-height:none">${(p.docs || []).map((d) => `<div class="doc-row"><div class="doc-icon ${esc(d.kind)}">${esc((d.ext || "").replace(".", "").toUpperCase())}</div><div><div class="doc-name">${esc(d.name)}</div><div class="doc-sub">${d.page_count || 0} 页 · ${Number(d.chars || 0).toLocaleString()} 字${d.warnings?.length ? " · 有解析提示" : ""}</div></div><select class="kind-select" data-doc-kind="${esc(d.doc_id)}">${KIND_ORDER.map((k) => `<option value="${k}" ${d.kind === k ? "selected" : ""}>${KIND_LABEL[k]}</option>`).join("")}</select><span class="doc-pages muted tiny">${esc(d.ext || "")}</span><span class="doc-chars muted tiny">${d.size ? Math.round(d.size / 1024) + " KB" : ""}</span><button class="icon-btn" data-delete-doc="${esc(d.doc_id)}" title="删除">${icon("trash")}</button></div>`).join("") || `<div class="empty-mini">还没有资料</div>`}</div>
         <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn" data-action="import-inbox">${icon("folder")} 扫描资料夹</button><button class="btn btn-ghost" data-action="open-ask">${icon("spark")} 问教练</button></div>
         <div class="info-box">也可以把文件直接放进应用目录的 <span class="code">inbox/课件</span>、<span class="code">inbox/作业</span>、<span class="code">inbox/真题</span>，再点“扫描资料夹”。</div>
+        <div class="info-box" style="margin-top:8px"><b>只有 PPT + 作业时：</b>系统把“作业重复出现 + PPT 明确强调”的考点排前面，其余标为背景/可暂缓。目标是先覆盖最可能考的 20%，不是把 100% 课件都学完。</div>
       </div>
       <div>
         <div class="card card-pad"><div class="eyebrow">EXAM SETTINGS</div><h2 style="font-size:23px;margin:5px 0 10px">考试设置</h2>
@@ -1186,6 +1187,7 @@
     if (!S.modal) { root.innerHTML = ""; return; }
     let body = "";
     if (S.modal === "settings") body = settingsModal();
+    else if (S.modal === "courses") body = coursesModal();
     else if (S.modal === "export") body = exportModal();
     root.innerHTML = `<div class="modal-scrim" data-action="close-modal"><div class="modal" role="dialog" aria-modal="true" onclick="event.stopPropagation()">${body}</div></div>`;
     hydrateIcons(root);
@@ -1202,6 +1204,41 @@
       <div class="modal-section"><h3>危险操作</h3><div class="danger-row"><span>清空分析结果，保留资料与 API 设置</span><button class="btn btn-sm btn-danger" data-action="reset-analysis">清空分析</button></div><div class="danger-row"><span>清空所有卡片、刷题和模考进度</span><button class="btn btn-sm btn-danger" data-action="reset-progress">清空进度</button></div></div>
     </div>
     <div class="modal-foot"><button class="btn" data-action="close-modal">取消</button><button class="btn btn-accent" data-action="save-settings">${icon("check")} 保存设置</button></div>`;
+  }
+
+  function coursesModal() {
+    const courses = S.data.courses || [];
+    const active = S.data.active_course_id;
+    return `<div class="modal-head"><div><div class="eyebrow">COURSE LIBRARY</div><h2>课程库</h2><p>每门课独立保存 PPT/作业/真题、分析结果和学习进度。</p></div><button class="icon-btn" data-action="close-modal">${icon("x")}</button></div>
+    <div class="modal-body">
+      <div class="course-list">${courses.map((c) => `<div class="course-row ${c.active ? "active" : ""}"><div class="course-dot">${c.active ? "●" : "○"}</div><div><b>${esc(c.name)}</b><span>${c.docs || 0} 份资料 · ${c.has_analysis ? "已生成冲刺包" : "待生成"}${c.active ? " · 当前" : ""}</span></div><button class="btn btn-sm ${c.active ? "btn-ghost" : "btn-accent"}" data-course-switch="${esc(c.id)}" ${c.active ? "disabled" : ""}>${c.active ? "当前" : "进入"}</button></div>`).join("") || `<div class="empty-mini">还没有课程</div>`}</div>
+      <div class="modal-section"><h3>新建课程</h3><p class="setting-note">建好后进入课程，上传 PPT/作业/真题，再点“生成冲刺包”。没有真题也能生成，但会标记为低置信度。</p><div class="key-row"><input id="newCourseName" placeholder="例如：宏观经济学 / 数据结构"><button class="btn btn-accent" data-action="create-course">${icon("plus")} 新建</button></div></div>
+      <div class="info-box">当前是单用户课程库：同一时间只打开一门课；API Key 是全局设置，所有课程共用。</div>
+    </div>`;
+  }
+
+  async function switchCourse(id) {
+    try {
+      await api("/api/courses/switch", { method: "POST", body: { id } });
+      closeModal();
+      S.view = "dashboard";
+      S.initialViewDone = true;
+      await load();
+      toast("已切换课程", "success");
+    } catch (err) { toast(err.message, "error"); }
+  }
+
+  async function createCourse() {
+    const name = $("#newCourseName")?.value?.trim();
+    if (!name) { toast("先输入课程名称", "error"); return; }
+    try {
+      await api("/api/courses/create", { method: "POST", body: { name } });
+      closeModal();
+      S.view = "dashboard";
+      S.initialViewDone = true;
+      await load();
+      toast("课程已创建，先上传资料", "success");
+    } catch (err) { toast(err.message, "error"); }
   }
 
   function exportModal() {
@@ -1308,15 +1345,22 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
+    const courseSwitch = e.target.closest("[data-course-switch]");
+    if (courseSwitch) {
+      if (!courseSwitch.disabled) switchCourse(courseSwitch.dataset.courseSwitch);
+      return;
+    }
     const actionEl = e.target.closest("[data-action]");
     if (actionEl) {
       const action = actionEl.dataset.action;
       if (action === "open-settings") openModal("settings");
+      else if (action === "open-courses") openModal("courses");
       else if (action === "open-export") openModal("export");
       else if (action === "close-modal") closeModal();
       else if (action === "open-ask") openAsk();
       else if (action === "close-ask") closeAsk();
       else if (action === "save-settings") saveSettings();
+      else if (action === "create-course") createCourse();
       else if (action === "test-settings") testSettings();
       else if (action === "reset-analysis") resetScope("analysis");
       else if (action === "reset-progress") resetScope("progress");
