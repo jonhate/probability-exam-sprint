@@ -1,0 +1,6 @@
+python-pptx>=1.0
+python-docx>=1.1
+openpyxl>=3.1
+Pillow>=10.0
+# Optional: better text PDF extraction. The app also has a built-in fallback.
+pypdf>=5.0
