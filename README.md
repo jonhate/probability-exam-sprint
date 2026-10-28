@@ -1,3 +1,7 @@
+# ExamSprint · 概率统计期中冲刺
+
+**在线网页：** https://jonhate.github.io/probability-exam-sprint/
+
 # ExamSprint 静态网页版
 
 这是给“手机/平板/任何浏览器打开”的版本：
