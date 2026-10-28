@@ -7,6 +7,12 @@
 - 根目录：零依赖静态网页（GitHub Pages 已上线）
 - `server/`：完整 Python 后端（上传资料、重新生成、DeepSeek 问答、导出）
 
+## 手机安装
+
+- **PWA**：打开 https://jonhate.github.io/probability-exam-sprint/ → 浏览器菜单 → 添加到主屏幕（iPhone/iPad/Android）。
+- **Android APK**：https://github.com/jonhate/probability-exam-sprint/releases/download/v1.0-android/ExamSprint.apk
+- 详细步骤见 [MOBILE.md](MOBILE.md)。
+
 ## 静态网页版
 
 - 不需要 Python / API Key
