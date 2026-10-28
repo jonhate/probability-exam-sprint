@@ -202,6 +202,8 @@ def _state_payload() -> dict[str, Any]:
         "project": project,
         "settings": _public_settings(),
         "progress": progress,
+        "courses": store.list_courses(),
+        "active_course_id": store.active_course_id(),
         "insights": _build_insights(project, progress),
         "server": {"time": _now(), "version": "1.0.0", "active_job": bool(_JOB_THREAD and _JOB_THREAD.is_alive())},
     }
@@ -636,6 +638,10 @@ class Handler(BaseHTTPRequestHandler):
                 return self._test_settings()
             if path == "/api/project":
                 return self._save_project()
+            if path == "/api/courses/create":
+                return self._create_course()
+            if path == "/api/courses/switch":
+                return self._switch_course()
             if path == "/api/progress":
                 status, obj = _update_progress(self._read_json())
                 return self._json(status, obj)
@@ -738,6 +744,23 @@ class Handler(BaseHTTPRequestHandler):
         p["updated_at"] = _now()
         store.write("project", p)
         self._json(200, {"ok": True, "project": {k: v for k, v in p.items() if k != "analysis"}})
+
+    def _create_course(self) -> None:
+        if _JOB_THREAD and _JOB_THREAD.is_alive():
+            return self._error(409, "有分析任务正在运行，先等它结束再新建课程。")
+        body = self._read_json()
+        name = str(body.get("name") or "").strip()[:60]
+        if not name:
+            raise ValueError("请输入课程名称")
+        course = store.create_course(name)
+        self._json(200, {"ok": True, "course": course, "active_course_id": store.active_course_id()})
+
+    def _switch_course(self) -> None:
+        if _JOB_THREAD and _JOB_THREAD.is_alive():
+            return self._error(409, "有分析任务正在运行，先等它结束再切换课程。")
+        body = self._read_json()
+        course = store.switch_course(str(body.get("id") or ""))
+        self._json(200, {"ok": True, "course": course, "active_course_id": store.active_course_id()})
 
     def _doc_kind(self) -> None:
         body = self._read_json()
