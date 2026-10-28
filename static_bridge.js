@@ -84,6 +84,8 @@
       project: BASE.project,
       settings: { ...BASE.settings, has_key: false, key_hint: "" },
       progress,
+      courses: [{ id: "static", name: BASE.project.course || "我的课程", status: BASE.project.status || "ready", docs: (BASE.project.docs || []).length, has_analysis: true, active: true }],
+      active_course_id: "static",
       insights: insights(),
       server: { time: new Date().toISOString(), version: "static-1.0", active_job: false },
     };
@@ -162,6 +164,8 @@
     body.static-mode .dropzone,
     body.static-mode [data-export] { display:none !important; }
     body.static-mode .topbar-sub::after { content:" · 静态网页"; color:var(--accent); }
+    body.static-mode .course-line { pointer-events:none; cursor:default; }
+    body.static-mode .course-caret { display:none; }
   `;
   document.head.appendChild(style);
   document.body.classList.add("static-mode");
