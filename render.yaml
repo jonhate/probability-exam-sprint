@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: examsprint-agent
+    runtime: docker
+    plan: free
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
+    healthCheckPath: /api/health
+    envVars:
+      - key: EXAMSPRINT_ACCESS_TOKEN
+        sync: false
