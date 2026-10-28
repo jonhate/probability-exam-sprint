@@ -528,6 +528,9 @@ class Handler(BaseHTTPRequestHandler):
     def _check_auth(self) -> bool:
         if not ACCESS_TOKEN:
             return True
+        # Cloud platforms need an unauthenticated liveness endpoint.
+        if self.path.split("?", 1)[0] == "/api/health":
+            return True
         header = self.headers.get("Authorization", "")
         if header.startswith("Basic "):
             try:
