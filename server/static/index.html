@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="color-scheme" content="light">
+  <title>ExamSprint · 考前冲刺 Agent</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="app-shell" id="appShell">
+    <aside class="sidebar">
+      <div class="brand" data-nav="dashboard" role="button" tabindex="0">
+        <div class="brand-mark">ES</div>
+        <div>
+          <div class="brand-name">ExamSprint</div>
+          <div class="brand-sub">考前冲刺 Agent</div>
+        </div>
+      </div>
+
+      <nav class="nav" id="mainNav">
+        <button class="nav-item active" data-nav="dashboard">
+          <span class="nav-icon" data-icon="home"></span><span>总览</span>
+        </button>
+        <button class="nav-item" data-nav="zero">
+          <span class="nav-icon" data-icon="target"></span><span>零基础起步</span><span class="nav-badge">保60</span>
+        </button>
+        <button class="nav-item" data-nav="map">
+          <span class="nav-icon" data-icon="map"></span><span>考点地图</span>
+        </button>
+        <button class="nav-item" data-nav="study">
+          <span class="nav-icon" data-icon="book"></span><span>速学 / 回忆</span>
+        </button>
+        <button class="nav-item" data-nav="practice">
+          <span class="nav-icon" data-icon="pencil"></span><span>刷题</span>
+        </button>
+        <button class="nav-item" data-nav="mock">
+          <span class="nav-icon" data-icon="clock"></span><span>模拟考</span>
+        </button>
+        <button class="nav-item" data-nav="errors">
+          <span class="nav-icon" data-icon="flag"></span><span>错题本</span>
+        </button>
+        <button class="nav-item" data-nav="docs">
+          <span class="nav-icon" data-icon="folder"></span><span>资料箱</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="countdown-card" id="countdownCard">
+          <div class="countdown-label">距考试</div>
+          <div class="countdown-value"><span id="countdownDays">—</span><small>天</small></div>
+          <div class="countdown-note" id="countdownNote">先上传资料</div>
+        </div>
+        <button class="side-action" data-action="open-settings">
+          <span data-icon="settings"></span><span>模型与设置</span>
+        </button>
+        <div class="privacy-note">仅本机运行 · 数据不出设备<br>调用模型时仅发送必要资料片段</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu" data-action="toggle-nav" aria-label="菜单"><span data-icon="menu"></span></button>
+          <div>
+            <div class="course-line" id="courseLine">我的课程</div>
+            <div class="topbar-sub" id="topbarSub">把课件变成考前作战图</div>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost btn-sm" data-action="open-ask"><span data-icon="spark"></span><span class="hide-sm">问教练</span></button>
+          <button class="btn btn-ghost btn-sm" data-action="open-export"><span data-icon="download"></span><span class="hide-sm">导出</span></button>
+          <button class="btn btn-dark btn-sm" data-action="open-settings"><span data-icon="settings"></span><span class="hide-sm">设置</span></button>
+        </div>
+      </header>
+      <div id="globalBanner"></div>
+      <section id="viewRoot" class="view-root" aria-live="polite"></section>
+    </main>
+  </div>
+
+  <div class="mobile-scrim" id="mobileScrim" data-action="close-nav"></div>
+  <div class="modal-root" id="modalRoot"></div>
+  <aside class="ask-drawer" id="askDrawer" aria-hidden="true">
+    <div class="ask-head">
+      <div>
+        <div class="eyebrow">GROUNDED TUTOR</div>
+        <h2>问教练</h2>
+      </div>
+      <button class="icon-btn" data-action="close-ask" aria-label="关闭"><span data-icon="x"></span></button>
+    </div>
+    <div class="ask-context">只依据你的课件、作业和真题回答，并标出原文位置。</div>
+    <div class="ask-messages" id="askMessages"></div>
+    <form class="ask-form" id="askForm">
+      <textarea id="askInput" rows="2" placeholder="例如：这个公式在什么条件下不能用？"></textarea>
+      <button class="btn btn-accent" type="submit" id="askSend">发送</button>
+    </form>
+  </aside>
+  <div class="drawer-scrim" id="drawerScrim" data-action="close-ask"></div>
+  <div class="toast-stack" id="toastStack"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
