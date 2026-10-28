@@ -1,60 +1,46 @@
 # ExamSprint · 概率统计期中冲刺
 
-**在线网页：** https://jonhate.github.io/probability-exam-sprint/
+**在线静态网页：** https://jonhate.github.io/probability-exam-sprint/
 
-# ExamSprint 静态网页版
+这个仓库包含两部分：
 
-这是给“手机/平板/任何浏览器打开”的版本：
+- 根目录：零依赖静态网页（GitHub Pages 已上线）
+- `server/`：完整 Python 后端（上传资料、重新生成、DeepSeek 问答、导出）
 
-- 不需要 Python；
-- 不需要 API Key；
-- 已预装当前《概率统计》60→80→100 冲刺包；
-- 学习进度保存在浏览器 `localStorage`；
-- 不支持上传新资料、重新生成、修改模型（这些用本地完整版）。
+## 静态网页版
 
-## 本地预览
+- 不需要 Python / API Key
+- 已预装《概率统计》60→80→100 冲刺包
+- 学习进度保存在浏览器 `localStorage`
+- 不支持上传新资料、重新生成、修改模型
 
-直接双击 `index.html` 也能打开。  
-如果浏览器限制本地文件，执行：
+直接打开 `index.html`，或：
 
 ```powershell
 python -m http.server 8770
 ```
 
-然后打开 `http://127.0.0.1:8770/`。
+## 完整后端部署到 Render（免费层）
 
-## 部署到 GitHub Pages
+1. 用 GitHub 登录 [Render](https://render.com)。
+2. New → Blueprint → 选择本仓库。
+3. Render 会读取根目录的 `render.yaml`，构建 `server/Dockerfile`。
+4. 设置环境变量 `EXAMSPRINT_ACCESS_TOKEN` 为你的访问密码。
+5. 部署完成后，浏览器会弹 HTTP Basic Auth：用户名随便填，密码就是该 Token。
 
-在 `web/` 目录执行：
+免费层注意：
 
-```bash
-git init
-git add .
-git commit -m "ExamSprint probability midterm web"
-git branch -M main
-git remote add origin https://github.com/你的用户名/你的仓库.git
-git push -u origin main
-```
+- 一段时间无请求会休眠，首次打开会慢；
+- 文件系统是临时的，上传文件、API Key、进度可能在重启/重新部署后丢失；
+- 必须设置 `EXAMSPRINT_ACCESS_TOKEN`，否则任何拿到 URL 的人都能使用和改设置；
+- 想长期稳定保存数据，需要持久磁盘或数据库。
 
-然后：
+## 静态页部署（已配置）
 
-1. 打开 GitHub 仓库 → Settings → Pages
-2. Source 选 `Deploy from a branch`
-3. Branch 选 `main`，目录选 `/ (root)`
-4. 保存，等待 1–2 分钟
-5. 地址是 `https://你的用户名.github.io/你的仓库/`
+GitHub 仓库 → Settings → Pages → Deploy from a branch → `main` / root。
 
-> 公开仓库 + GitHub Pages 意味着**课程内容和题目摘录公开可见**。如果不想公开，用本地版，或使用带访问控制的托管（Cloudflare Access / Netlify password）。
+> 公开仓库 + 公开网页意味着整理后的课程内容可见；仓库不包含原始 PPT/PDF/作业图片。
 
-## 部署到 Netlify / Cloudflare Pages
+## 本地完整版
 
-把整个 `web/` 文件夹拖到：
-
-- https://app.netlify.com/drop
-- 或 Cloudflare Pages 的 “Upload assets”
-
-不需要构建命令，发布目录就是 `web/`。
-
-## 想保留完整功能
-
-需要 Python 后端（上传、重新生成、DeepSeek 问答）时，不要把 `app.py` 放 GitHub Pages，Pages 只能托管静态文件。可以用 Render / Railway / 一台云服务器运行 `app.py`，或者继续在本机双击 `启动概率统计冲刺.bat`。
+根目录之外的 `启动概率统计冲刺.bat` 是本机完整版启动器。它使用本地 `data/`，不会因为云服务器休眠丢数据。
