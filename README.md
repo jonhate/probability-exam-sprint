@@ -20,6 +20,10 @@
 python -m http.server 8770
 ```
 
+## 多课程
+
+完整后端支持课程库：点左上角课程名 → 新建课程。只有 PPT + 作业也能生成；没有真题时会按“作业重复 40% + PPT 强调 40% + 先修 20%”排序，并标记为低置信度推断。静态网页版只含当前概率统计课程。
+
 ## 完整后端部署到 Render（免费层）
 
 **一键 Blueprint：** https://render.com/deploy?repo=https://github.com/jonhate/probability-exam-sprint
