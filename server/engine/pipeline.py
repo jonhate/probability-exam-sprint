@@ -200,6 +200,8 @@ class Pipeline:
         if not exam_docs and not hw_docs:
             self.warnings.append("没有上传真题或作业：考试蓝图按课件推断，可靠性较低。")
             return fallback
+        if not exam_docs:
+            self.warnings.append("没有真题：题型、分值和重点按作业 + PPT 推断，可靠性中低；请优先看老师明确强调的内容和作业错题。")
         assert self.llm is not None
         system, user = exam_analysis_prompt(self.project.get("course", "我的课程"), exam_docs, hw_docs, stats)
         try:
