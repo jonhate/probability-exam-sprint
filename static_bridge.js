@@ -169,4 +169,33 @@
   `;
   document.head.appendChild(style);
   document.body.classList.add("static-mode");
+
+  // PWA: installable on Android/Chrome and iPhone/iPad Safari.
+  if ((location.protocol === "http:" || location.protocol === "https:") && "serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+  }
+  const standalone = window.matchMedia?.("(display-mode: standalone)")?.matches || window.navigator.standalone;
+  if (!standalone && (location.protocol === "http:" || location.protocol === "https:")) {
+    const installBtn = document.createElement("button");
+    installBtn.type = "button";
+    installBtn.className = "pwa-install";
+    installBtn.textContent = "安装到桌面";
+    let installEvent = null;
+    window.addEventListener("beforeinstallprompt", (event) => {
+      event.preventDefault();
+      installEvent = event;
+    });
+    installBtn.addEventListener("click", async () => {
+      if (installEvent) {
+        installEvent.prompt();
+        const choice = await installEvent.userChoice;
+        installEvent = null;
+        if (choice.outcome === "accepted") installBtn.remove();
+        return;
+      }
+      alert("iPhone/iPad：点 Safari 底部分享按钮 → “添加到主屏幕”。\nAndroid：点浏览器菜单 → “安装应用 / 添加到主屏幕”。");
+    });
+    window.addEventListener("appinstalled", () => installBtn.remove());
+    document.body.appendChild(installBtn);
+  }
 })();
