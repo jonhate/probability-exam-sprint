@@ -549,6 +549,10 @@ kbd { font: 600 9px/1 var(--mono); background: #eee7d8; border: 1px solid #d8cfb
 .course-row b { display: block; font-size: 13px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .course-row span { display: block; margin-top: 2px; font-size: 10px; color: var(--muted); }
 .course-row .btn { flex: none; }
+.pwa-install { position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 30; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); padding: 10px 14px; border-radius: 999px; font: 600 12px var(--sans); box-shadow: 0 8px 24px rgba(31,42,36,.22); cursor: pointer; }
+.pwa-install:hover { background: var(--accent); border-color: var(--accent); }
+@media print { .pwa-install { display: none !important; } }
+@media (max-width: 520px) { .pwa-install { right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); } }
 .export-option { display: flex; align-items: center; gap: 12px; padding: 13px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; background: var(--card); }
 .export-option .eicon { width: 36px; height: 36px; border-radius: 9px; display: grid; place-items: center; background: var(--green-soft); color: var(--green); }
 .export-option b { display: block; font-size: 12px; }
