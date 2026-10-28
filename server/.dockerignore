@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+uploads/
+data/parse_cache/
+data/upload_tmp/
+data/server_info.json
+data/analysis_error.log
+exports/
