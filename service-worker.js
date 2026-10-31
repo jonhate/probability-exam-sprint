@@ -1,5 +1,5 @@
 /* ExamSprint static PWA. Cache first for study assets, network first for navigation. */
-const CACHE = "examsprint-static-v2";
+const CACHE = "examsprint-static-v3";
 const ASSETS = [
   "./",
   "./index.html",
@@ -36,6 +36,18 @@ self.addEventListener("fetch", (event) => {
         caches.open(CACHE).then((cache) => cache.put(req, copy));
         return res;
       }).catch(() => caches.match("./index.html"))
+    );
+    return;
+  }
+
+  // Course payload changes on every rebuild; never serve a stale pack forever.
+  if (url.pathname.endsWith("/data.js")) {
+    event.respondWith(
+      fetch(req).then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((cache) => cache.put(req, copy));
+        return res;
+      }).catch(() => caches.match(req))
     );
     return;
   }
