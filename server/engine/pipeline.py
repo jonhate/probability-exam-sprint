@@ -125,8 +125,8 @@ class Pipeline:
 
         self.emit("plan", 97, "正在排 3 天冲刺计划…")
         days = safe_int(self.project.get("days"), 3, 1, 14)
-        hours = safe_int(self.project.get("hours_per_day"), 5, 1, 16)
-        plan = offline.build_plan(topics, days, hours)
+        hours = max(0.5, min(16, float(self.project.get("hours_per_day") or 5)))
+        plan = offline.build_plan(topics, days, hours, safe_int(exam_profile.get("duration_minutes"), 120, 1, 300))
         analysis = self._assemble(
             topics=topics,
             cards=cards,
@@ -210,7 +210,7 @@ class Pipeline:
             if not isinstance(data.get("question_types"), list) or not data.get("question_types"):
                 raise ValueError("缺少 question_types")
             data.setdefault("notes", [])
-            data["confidence"] = str(data.get("confidence") or "低")
+            data["confidence"] = str(data.get("confidence") or "低") if exam_docs else "低"
             return data
         except Exception as exc:
             self.warnings.append(f"真题分析失败，改用规则推断：{exc}")
@@ -279,6 +279,11 @@ class Pipeline:
                     "guide": _default_guide(name, points, formula),
                 }
             )
+        if not any(d.get("kind") == "exam" for d in self.docs):
+            offline.rank_candidates(self.docs, topics, len(topics))
+            for topic in topics:
+                topic["priority"] = round(topic["_priority"])
+                topic["why"] = topic["_why"] + "；" + topic["why"]
         topics.sort(key=lambda t: -t["priority"])
         for i, t in enumerate(topics, 1):
             t["id"] = f"t{i:02d}"
@@ -473,7 +478,7 @@ class Pipeline:
             raise AnalysisError("从资料中提取不到足够文字。请确认文件不是扫描图片，或先转成可复制文字的 PDF/PPTX。")
         profile = offline.make_exam_profile(self.docs, candidates)
         days = safe_int(self.project.get("days"), 3, 1, 14)
-        hours = safe_int(self.project.get("hours_per_day"), 5, 1, 16)
+        hours = max(0.5, min(16, float(self.project.get("hours_per_day") or 5)))
         target = min(14, max(6, days * 3 + 3))
         self.emit("offline", 45, "正在按真题/作业信号排序考点…")
         topics = offline.build_topics(self.docs, candidates, target)
@@ -481,7 +486,7 @@ class Pipeline:
         cards = offline.build_cards(topics, max(24, len(topics) * 3))
         questions = offline.build_questions(topics, max(12, len(topics) + 6))
         mock = offline.build_mock(topics, profile)
-        plan = offline.build_plan(topics, days, hours)
+        plan = offline.build_plan(topics, days, hours, safe_int(profile.get("duration_minutes"), 120, 1, 300))
         warnings = list(extra_warnings or [])
         warnings.append("当前为离线模式：考点来自标题/关键句抽取，题目为框架题；配置 DeepSeek/OpenAI 兼容 API 后会重新生成高质量讲解、仿真题和仿真卷。")
         analysis = self._assemble(
@@ -787,6 +792,18 @@ def _sanitize_mock(data: dict[str, Any], topics: list[dict[str, Any]]) -> dict[s
     if not sections:
         return None
     total = safe_int(data.get("total_score"), 100, 10, 300)
+    # Enforce a consistent paper total even when the model's section arithmetic is wrong.
+    weights = [s["score"] or len(s["questions"]) for s in sections]
+    remaining = float(total)
+    for idx, section in enumerate(sections):
+        points = round(total * weights[idx] / sum(weights), 1) if idx < len(sections) - 1 else round(remaining, 1)
+        remaining -= points
+        section["score"] = points
+        questions = section["questions"]
+        each = round(points / len(questions), 1)
+        for q in questions:
+            q["score"] = each
+        questions[-1]["score"] = round(points - each * (len(questions) - 1), 1)
     return {
         "title": str(data.get("title") or "期中仿真卷")[:120],
         "duration_minutes": safe_int(data.get("duration_minutes"), 120, 20, 300),
@@ -810,6 +827,7 @@ def _mock_from_questions(questions: list[dict[str, Any]], profile: dict[str, Any
         }
     each = round(100 / len(picked), 1)
     picked = [dict(q, score=each) for q in picked]
+    picked[-1]["score"] = round(100 - each * (len(picked) - 1), 1)
     return {
         "title": "期中仿真卷（练习重组）",
         "duration_minutes": safe_int(profile.get("duration_minutes"), 120, 30, 300),
