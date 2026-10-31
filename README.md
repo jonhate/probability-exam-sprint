@@ -2,6 +2,13 @@
 
 **在线静态网页：** https://jonhate.github.io/probability-exam-sprint/
 
+## 2026-10-31 可靠性更新
+
+- 已完成一轮后端/前端可靠性修复并通过 18 个回归测试。
+- 重新生成会归档旧包和旧进度，新包从零计进度。
+- PWA 使用 v3 缓存，课程数据改为 network-first，避免旧题库长期缓存。
+- 本次已重建 PWA、Render 云端副本和 Android APK。
+
 这个仓库包含两部分：
 
 - 根目录：零依赖静态网页（GitHub Pages 已上线）
