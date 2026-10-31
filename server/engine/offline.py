@@ -154,22 +154,23 @@ def make_exam_profile(docs: list[dict[str, Any]], candidates: list[dict[str, Any
 
 
 def rank_candidates(docs: list[dict[str, Any]], candidates: list[dict[str, Any]], target: int) -> list[dict[str, Any]]:
-    exam_text = "\n".join(p.get("text", "") for d in docs if d.get("kind") == "exam" for p in d.get("pages", []))
-    hw_text = "\n".join(p.get("text", "") for d in docs if d.get("kind") == "homework" for p in d.get("pages", []))
+    has_exam = any(d.get("kind") == "exam" for d in docs)
     for c in candidates:
         name = c["name"]
-        exam_score = 1 if name and name in exam_text else 0
-        hw_score = 1 if name and name in hw_text else 0
-        c["_priority"] = (
-            25
-            + 9 * len(c.get("source_doc_ids", []))
-            + 8 * int(c.get("emphasis", 1))
-            + 18 * exam_score
-            + 10 * hw_score
-            + min(8, len(c.get("key_points", [])))
-        )
-    ranked = sorted(candidates, key=lambda c: (-c["_priority"], len(c["name"])))
-    return ranked[:target]
+        def hits(kind):
+            return sum(name in p.get("text", "") for d in docs if d.get("kind") == kind for p in d.get("pages", []))
+        hw = min(1.0, hits("homework") / 3)
+        slide_hits = hits("slides")
+        slides = min(1.0, slide_hits / 3)
+        if has_exam:
+            c["_priority"] = 100 * (0.55 * min(1, hits("exam") / 2) + 0.25 * hw + 0.20 * slides)
+            c["_why"] = "真题重复55% + 作业重复25% + 课件覆盖20%（规则分，非命中概率）"
+        else:
+            # Only explicit prerequisites are evidence. Missing evidence contributes zero.
+            prerequisite = min(1.0, sum(name in x.get("prerequisites", []) for x in candidates) / 3)
+            c["_priority"] = 100 * (0.4 * hw + 0.4 * slides + 0.2 * prerequisite)
+            c["_why"] = "推断/低置信度：作业重复40% + PPT覆盖40% + 明确先修依赖20%；缺失信号不补分"
+    return sorted(candidates, key=lambda c: (-c["_priority"], len(c["name"])))[:target]
 
 
 def build_topics(docs: list[dict[str, Any]], candidates: list[dict[str, Any]], target: int) -> list[dict[str, Any]]:
@@ -181,8 +182,8 @@ def build_topics(docs: list[dict[str, Any]], candidates: list[dict[str, Any]], t
             {
                 "id": f"t{i:02d}",
                 "name": c["name"],
-                "priority": max(35, min(99, int(c.get("_priority", 60)))),
-                "why": c.get("summary") or "在资料中反复出现，适合作为答题骨架。",
+                "priority": max(0, min(100, round(c.get("_priority", 0)))),
+                "why": c.get("_why") or c.get("summary") or "资料中的候选考点",
                 "difficulty": 3,
                 "key_points": c.get("key_points", [])[:6],
                 "formula": c.get("formula", ""),
@@ -242,9 +243,9 @@ def find_topic_sources(topic: str, docs: list[dict[str, Any]], limit: int = 3) -
     return out
 
 
-def build_plan(topics: list[dict[str, Any]], days: int, hours: int) -> list[dict[str, Any]]:
+def build_plan(topics: list[dict[str, Any]], days: int, hours: float, mock_minutes: int = 120) -> list[dict[str, Any]]:
     days = max(1, min(14, int(days)))
-    total_minutes = max(60, int(hours * 60))
+    total_minutes = max(30, round(float(hours) * 60))
     topic_ids = [t["id"] for t in topics]
     # Split topics across learning days, weighted by priority.
     if days == 1:
@@ -258,7 +259,7 @@ def build_plan(topics: list[dict[str, Any]], days: int, hours: int) -> list[dict
     for d in range(1, days + 1):
         is_last = d == days
         group = groups[min(d - 1, len(groups) - 1)] if not is_last else []
-        remaining = topic_ids if not group and not is_last else group
+        remaining = topic_ids if days == 1 or (not group and not is_last) else group
         blocks_spec: list[tuple[str, int, list[str], str]]
         if days == 1:
             blocks_spec = [
@@ -292,18 +293,23 @@ def build_plan(topics: list[dict[str, Any]], days: int, hours: int) -> list[dict
                 ("限时题组：混合题型", int(total_minutes * 0.22), remaining, "正确率 + 用时"),
                 ("错题回炉 + 卡片复习", int(total_minutes * 0.13), remaining, "错题本更新"),
             ]
-        # Normalize durations to exact total.
+        # Reserve a minimum block, then allocate the remaining minutes proportionally.
         raw = sum(x[1] for x in blocks_spec)
-        scaled = [max(5, round(x[1] * total_minutes / raw)) for x in blocks_spec]
-        diff = total_minutes - sum(scaled)
-        scaled[-1] += diff
+        minimum = min(5, total_minutes // len(blocks_spec))
+        remainder = total_minutes - minimum * len(blocks_spec)
+        scaled = [minimum + int(x[1] * remainder / raw) for x in blocks_spec]
+        for idx in range(total_minutes - sum(scaled)):
+            scaled[idx % len(scaled)] += 1
         blocks = []
         for i, (title, minutes, tids, output) in enumerate(blocks_spec, 1):
+            if "全真模拟" in title and scaled[i - 1] < mock_minutes:
+                title = f"限时诊断：抽取代表题（整卷需 {mock_minutes} 分钟，另排时间）"
+                output = "抽题得分 + 错因；本块不要求完成整卷"
             blocks.append(
                 {
                     "id": f"d{d}b{i}",
-                    "time": _block_time(i),
-                    "minutes": int(minutes),
+                    "time": f"学习块 {i}",
+                    "minutes": scaled[i - 1],
                     "activity": title,
                     "topic_ids": [x for x in tids if x],
                     "output": output,
@@ -396,6 +402,8 @@ def build_mock(topics: list[dict[str, Any]], profile: dict[str, Any]) -> dict[st
     each = round(total / max(1, len(questions)), 1)
     for q in questions:
         q["score"] = each
+    if questions:
+        questions[-1]["score"] = round(total - each * (len(questions) - 1), 1)
     return {
         "title": "期中仿真卷（离线框架）",
         "duration_minutes": int(profile.get("duration_minutes", 120) or 120),
