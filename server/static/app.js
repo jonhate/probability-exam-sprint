@@ -104,6 +104,8 @@
 
   async function api(path, opts = {}) {
     const init = { method: opts.method || "GET", headers: { ...(opts.headers || {}) } };
+    if (S.data?.active_course_id) init.headers["X-Course-ID"] = encodeURIComponent(S.data.active_course_id);
+    if (S.data?.analysis_revision) init.headers["X-Analysis-Revision"] = S.data.analysis_revision;
     if (opts.body !== undefined) {
       init.headers["Content-Type"] = "application/json";
       init.body = JSON.stringify(opts.body);
@@ -121,7 +123,15 @@
 
   async function load() {
     try {
+      const previousCourse = S.data?.active_course_id;
+      const previousRevision = S.data?.analysis_revision;
       S.data = await api("/api/state");
+      if (previousCourse !== S.data.active_course_id || previousRevision !== S.data.analysis_revision) {
+        stopMockTimer();
+        S.mock = null; S.practice = null; S.cardOrder = []; S.cardIndex = 0;
+        S.cardRevealed = false; S.selectedTopic = null; S.openTopics = new Set();
+        S.practiceTopic = "all"; S.askHistory = [];
+      }
       if (!S.initialViewDone) {
         const fresh = !(S.data.insights?.card_seen || 0) && !(S.data.insights?.attempts || 0);
         if (S.data.project.analysis?.zero_base?.enabled && fresh) S.view = "zero";
@@ -505,13 +515,14 @@
   function dueCard(c) {
     const st = progress().cards?.[c.id];
     if (!st?.seen) return true;
-    try { return new Date(st.due) <= new Date(); } catch (_) { return true; }
+    const due = Date.parse(st.due);
+    return !Number.isFinite(due) || due <= Date.now();
   }
 
   function rebuildCardOrder() {
     const cards = analysis()?.cards || [];
     let pool = S.cardDueOnly ? cards.filter(dueCard) : cards;
-    if (!pool.length) pool = cards;
+    if (!pool.length && !S.cardDueOnly) pool = cards;
     S.cardOrder = pool.map((c) => c.id);
     S.cardIndex = Math.min(S.cardIndex, Math.max(0, S.cardOrder.length - 1));
     S.cardRevealed = false;
@@ -557,6 +568,7 @@
     const cards = analysis()?.cards || [];
     if (!cards.length) return `<div class="empty-state"><h3>还没有回忆卡</h3><p>到资料箱重新生成。</p></div>`;
     if (!S.cardOrder.length) rebuildCardOrder();
+    if (S.cardDueOnly && !S.cardOrder.length) return `<div class="empty-state"><h3>本轮到期卡片已复习完</h3><p>稍后再回来检查；也可以继续自由复习。</p><button class="btn" data-card-filter="all">查看全部卡片</button></div>`;
     const card = currentCard() || cards[0];
     if (!card) return "";
     const idx = Math.max(0, S.cardOrder.indexOf(card.id));
@@ -590,9 +602,9 @@
       S.cardRevealed = false;
       S.cardOrder.splice(S.cardIndex, 1);
       if (S.cardIndex >= S.cardOrder.length) S.cardIndex = 0;
-      if (!S.cardOrder.length) rebuildCardOrder();
       const fresh = await api("/api/state");
       S.data = fresh;
+      if (!S.cardOrder.length) rebuildCardOrder();
       render();
       toast(rating === "again" ? "已放回短间隔队列" : "记住了，继续", "success");
     } catch (err) { toast(err.message, "error"); }
@@ -611,7 +623,7 @@
       return `<div class="page-head"><div><div class="eyebrow">DRILL / 04</div><h1>刷题</h1><p>一次只做一题，提交后立刻看解析。答错自动进错题本。</p></div></div>
       <div class="two-col">
         <div class="card card-pad">
-          <div class="stat-strip"><div><b>${qs.length}</b><span>仿真练习题</span></div><div><b>${insights().accuracy || 0}%</b><span>历史正确率</span></div><div><b>${wrong.length}</b><span>待清理错题</span></div></div>
+          <div class="stat-strip"><div><b>${qs.length}</b><span>仿真练习题</span></div><div><b>${insights().accuracy || 0}%</b><span>各题最近作答正确率</span></div><div><b>${wrong.length}</b><span>待清理错题</span></div></div>
           <h2 style="font-size:26px;margin:6px 0 12px">选择训练方式</h2>
           <div class="field" style="max-width:300px"><label>限定考点</label><select id="practiceTopic"><option value="all">全部考点</option>${topics.map((t) => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join("")}</select></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
@@ -713,13 +725,19 @@
     }
     if (mode === "wrong") qs = wrongQuestions().map((x) => x.q);
     if (!qs.length) { toast("这个范围暂时没有题", "error"); return; }
+    const priorities = new Map((analysis()?.topics || []).map((t) => [t.id, Number(t.priority) || 0]));
+    const lastAttempt = (q) => (progress().questions?.[q.id]?.attempts || []).slice(-1)[0];
+    const bucket = (q) => { const last = lastAttempt(q); return !last ? 1 : last.correct ? 2 : 0; };
+    qs = [...qs].sort((a, b) => bucket(a) - bucket(b)
+      || (priorities.get(b.topic_id) || 0) - (priorities.get(a.topic_id) || 0)
+      || String(lastAttempt(a)?.at || "").localeCompare(String(lastAttempt(b)?.at || "")));
     if (mode !== "all" && mode !== "wrong") qs = qs.slice(0, Number(mode) || 10);
     S.practice = { questions: qs, index: 0, selected: [], openAnswer: "", submitted: false, result: null, recorded: false, correct: 0, answered: 0, answerDisplay: "" };
     S.view = "practice";
     render();
   }
 
-  function submitPractice() {
+  async function submitPractice() {
     const s = S.practice; if (!s || s.submitted) return;
     const q = s.questions[s.index];
     const isOpen = ["short", "calculation", "essay"].includes(q.type);
@@ -734,17 +752,18 @@
       render();
       return;
     }
+    if (s.saving) return;
+    s.saving = true;
     const good = sameAnswer(s.selected, correctLetters(q));
-    s.submitted = true;
-    s.result = good;
-    s.answerDisplay = selectedDisplay(q, s.selected);
-    s.answered += 1;
-    if (good) s.correct += 1;
-    s.recorded = true;
-    api("/api/progress", { method: "POST", body: { type: "question", id: q.id, correct: good, answer: s.answerDisplay } })
-      .then((r) => { S.data.insights = r.insights; })
-      .catch(() => {});
-    render();
+    const answer = selectedDisplay(q, s.selected);
+    try {
+      const r = await api("/api/progress", { method: "POST", body: { type: "question", id: q.id, correct: good, answer } });
+      S.data.insights = r.insights; if (r.progress) S.data.progress = r.progress;
+      s.submitted = true; s.result = good; s.answerDisplay = answer;
+      s.answered += 1; if (good) s.correct += 1; s.recorded = true;
+      render();
+    } catch (err) { toast(`未保存：${err.message}，请重试`, "error"); }
+    finally { s.saving = false; }
   }
 
   function sameAnswer(a, b) {
@@ -753,16 +772,17 @@
     return A === B;
   }
 
-  function selfGradePractice(good) {
-    const s = S.practice; if (!s || s.result !== null) return;
+  async function selfGradePractice(good) {
+    const s = S.practice; if (!s || s.result !== null || s.saving) return;
     const q = s.questions[s.index];
-    s.result = !!good;
-    s.answered += 1;
-    if (good) s.correct += 1;
-    s.recorded = true;
-    const body = { type: "question", id: q.id, correct: !!good, answer: s.openAnswer || "" };
-    api("/api/progress", { method: "POST", body }).then((r) => { S.data.insights = r.insights; }).catch(() => {});
-    render();
+    s.saving = true;
+    try {
+      const r = await api("/api/progress", { method: "POST", body: { type: "question", id: q.id, correct: !!good, answer: s.openAnswer || "" } });
+      S.data.insights = r.insights; if (r.progress) S.data.progress = r.progress;
+      s.result = !!good; s.answered += 1; if (good) s.correct += 1; s.recorded = true;
+      render();
+    } catch (err) { toast(`未保存：${err.message}，请重试`, "error"); }
+    finally { s.saving = false; }
   }
 
   function nextPractice() {
@@ -953,7 +973,7 @@
     const items = s.result?.items || [];
     const possible = s.result?.totalPossible || 1;
     const objectivePoints = items.filter((x) => !x.isOpen).reduce((n, x) => n + x.points, 0);
-    const selfPoints = items.filter((x) => x.isOpen).reduce((n, x) => n + Number(s.selfScores?.[x.q.id] || 0), 0);
+    const selfPoints = items.filter((x) => x.isOpen).reduce((n, x) => n + clamp(Number(s.selfScores?.[x.q.id] || 0), 0, x.q.maxScore), 0);
     const points = objectivePoints + selfPoints;
     const percent = Math.round((points / possible) * 100);
     const saved = s.status === "saved";
@@ -965,7 +985,7 @@
           ${items.map((x, i) => `<div class="review-q"><div class="mock-q-head"><b>${i + 1}.</b><span class="badge ${x.isOpen ? "badge-gold" : x.correct ? "badge-green" : "badge-accent"}">${x.isOpen ? "待自评" : x.correct ? "正确" : "错误"}</span><span class="tiny muted">${esc(x.q.topic || "")}</span></div>
             <div class="qstem" style="font-size:15px">${rich(x.q.stem)}</div>
             <p class="small"><b>你的答案：</b>${esc(x.isOpen ? (x.userAnswer || "（未作答）") : selectedDisplay(x.q, Array.isArray(x.userAnswer) ? x.userAnswer : (x.userAnswer ? [x.userAnswer] : [])))}</p>
-            <div class="review-answer"><b>参考答案：</b>${esc(Array.isArray(x.q.answer) ? x.q.answer.join("、") : x.q.answer)}${x.q.rubric ? `\n评分点：${x.q.rubric}` : ""}${x.q.explanation ? `\n解析：${x.q.explanation}` : ""}</div>
+            <div class="review-answer"><b>参考答案：</b>${esc(Array.isArray(x.q.answer) ? x.q.answer.join("、") : x.q.answer)}${x.q.rubric ? `\n评分点：${esc(x.q.rubric)}` : ""}${x.q.explanation ? `\n解析：${esc(x.q.explanation)}` : ""}</div>
             ${x.isOpen ? `<div style="display:flex;align-items:center;gap:7px;margin-top:8px"><span class="small">自评得分</span><input class="score-input" type="number" min="0" max="${x.q.maxScore}" step="0.5" value="${s.selfScores?.[x.q.id] ?? 0}" data-mock-score="${esc(x.q.id)}" ${saved ? "disabled" : ""}><span class="tiny muted">/ ${x.q.maxScore} 分</span></div>` : ""}
           </div>`).join("")}
         </div>
@@ -979,10 +999,10 @@
     const items = s.result.items;
     const possible = s.result.totalPossible || 1;
     const obj = items.filter((x) => !x.isOpen).reduce((n, x) => n + x.points, 0);
-    const self = items.filter((x) => x.isOpen).reduce((n, x) => n + Number(s.selfScores?.[x.q.id] || 0), 0);
+    const self = items.filter((x) => x.isOpen).reduce((n, x) => n + clamp(Number(s.selfScores?.[x.q.id] || 0), 0, x.q.maxScore), 0);
     const percent = Math.round(((obj + self) / possible) * 100);
     const detail = {};
-    items.forEach((x) => { detail[x.q.id] = { correct: x.correct, points: x.points, open: x.isOpen }; });
+    items.forEach((x) => { detail[x.q.id] = { correct: x.correct, points: x.isOpen ? clamp(Number(s.selfScores?.[x.q.id] || 0), 0, x.q.maxScore) : x.points, open: x.isOpen }; });
     api("/api/progress", { method: "POST", body: { type: "mock", score: percent, duration_minutes: (Date.now() - s.startedAt) / 60000, detail } })
       .then((r) => { S.data.insights = r.insights; s.status = "saved"; render(); toast("模考成绩已记录", "success"); })
       .catch((err) => toast(err.message, "error"));
@@ -1066,7 +1086,7 @@
       try {
         const res = await fetch("/api/upload", {
           method: "POST",
-          headers: { "X-Filename": encodeURIComponent(f.name), "X-Doc-Kind": "auto", "Content-Type": "application/octet-stream" },
+          headers: { "X-Course-ID": encodeURIComponent(S.data.active_course_id || ""), "X-Filename": encodeURIComponent(f.name), "X-Doc-Kind": "auto", "Content-Type": "application/octet-stream" },
           body: f
         });
         const data = await res.json();
@@ -1116,6 +1136,7 @@
         return;
       }
       if (offline && !window.confirm("还没有配置模型。现在会生成“离线框架”（结构完整，但讲解和题目质量有限）。继续吗？")) return;
+      if (analysis() && !window.confirm("重新生成会归档当前冲刺包和进度，新版本从零记录。继续吗？")) return;
       const res = await api("/api/analyze", { method: "POST", body: { force_offline: offline, allow_fallback: true } });
       S.data.project.job = res.job;
       S.data.project.status = "analyzing";
@@ -1483,7 +1504,7 @@
     if (score && S.mock) {
       const qid = score.dataset.mockScore;
       S.mock.selfScores = S.mock.selfScores || {};
-      S.mock.selfScores[qid] = Math.max(0, Number(score.value) || 0);
+      S.mock.selfScores[qid] = clamp(Number(score.value) || 0, 0, Number(score.max) || 0);
       // Re-render only the result header total is enough to keep inputs responsive.
       const possible = S.mock.result?.totalPossible || 1;
       const items = S.mock.result?.items || [];
