@@ -141,7 +141,7 @@
         progress.plan[body.block_id || body.id] = !!body.done;
       } else return json({ ok: false, error: "未知进度类型" }, 400);
       save();
-      return json({ ok: true, insights: insights() });
+      return json({ ok: true, progress, insights: insights() });
     }
     if (path.endsWith("/api/ask")) {
       let body = {};
