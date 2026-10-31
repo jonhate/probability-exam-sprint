@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+from contextlib import contextmanager
+from functools import wraps
 import os
 import re
 import tempfile
@@ -21,6 +23,35 @@ COURSES_META = DATA / "courses.json"
 TZ = ZoneInfo("Asia/Shanghai")
 
 _LOCK = threading.RLock()
+_CONTEXT = threading.local()
+
+
+def transaction(fn):
+    @wraps(fn)
+    def wrapped(*args, **kwargs):
+        with _LOCK:
+            return fn(*args, **kwargs)
+    return wrapped
+
+
+def _course_dir(cid: str) -> Path:
+    if not re.fullmatch(r"[A-Za-z0-9_\-\u4e00-\u9fff]{1,80}", cid):
+        raise ValueError("非法课程 id")
+    target = (COURSES / cid).resolve()
+    if target.parent != COURSES.resolve():
+        raise ValueError("非法课程路径")
+    return target
+
+
+@contextmanager
+def course_scope(cid: str):
+    _course_dir(cid)
+    previous = getattr(_CONTEXT, "course_id", None)
+    _CONTEXT.course_id = cid
+    try:
+        yield
+    finally:
+        _CONTEXT.course_id = previous
 
 DEFAULTS: dict[str, Any] = {
     "project": {
@@ -70,8 +101,10 @@ def _read_json_file(path: Path, default: Any) -> Any:
     try:
         with path.open("r", encoding="utf-8") as f:
             value = json.load(f)
-    except (OSError, json.JSONDecodeError):
-        value = json.loads(json.dumps(default))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"数据文件无法读取，请从备份恢复：{path.name}") from exc
+    if isinstance(default, dict) and not isinstance(value, dict):
+        raise ValueError(f"数据文件格式错误：{path.name}")
     if isinstance(default, dict) and isinstance(value, dict):
         merged = json.loads(json.dumps(default))
         merged.update(value)
@@ -106,7 +139,7 @@ def _course_slug(name: str) -> str:
 
 
 def _new_course_dir(course_id: str, name: str) -> Path:
-    d = COURSES / course_id
+    d = _course_dir(course_id)
     d.mkdir(parents=True, exist_ok=True)
     project = json.loads(json.dumps(DEFAULTS["project"]))
     project["course"] = name
@@ -132,17 +165,29 @@ def _ensure_active() -> str:
         try:
             active = json.loads(ACTIVE.read_text(encoding="utf-8"))
             cid = str(active.get("id") or "")
-            if cid and (COURSES / cid).exists():
+            if cid and (_course_dir(cid)).exists():
                 return cid
         except Exception:
             pass
 
     meta = _read_meta()
+    # Recover an existing course before considering legacy migration. Never overwrite it.
+    for entry in meta["courses"]:
+        cid = str(entry.get("id") or "")
+        if (_course_dir(cid) / "project.json").is_file():
+            _write_json_file(ACTIVE, {"id": cid})
+            return cid
+    if (_course_dir("probability-midterm") / "project.json").is_file():
+        cid = "probability-midterm"
+        meta["courses"].append({"id": cid, "name": "概率统计", "created_at": now_iso()})
+        _write_json_file(COURSES_META, meta)
+        _write_json_file(ACTIVE, {"id": cid})
+        return cid
     legacy_project = DATA / "project.json"
 
     if legacy_project.exists():
         cid = "probability-midterm"
-        d = COURSES / cid
+        d = _course_dir(cid)
         d.mkdir(parents=True, exist_ok=True)
         for name in ("project", "corpus", "progress"):
             src = DATA / f"{name}.json"
@@ -165,6 +210,7 @@ def _ensure_active() -> str:
     return cid
 
 
+@transaction
 def ensure_dirs() -> None:
     for p in (DATA, UPLOADS, EXPORTS, INBOX, COURSES):
         p.mkdir(parents=True, exist_ok=True)
@@ -175,15 +221,17 @@ def _path(name: str) -> Path:
     if name not in DEFAULTS:
         raise KeyError(name)
     if name in COURSE_FILES:
-        return COURSES / _ensure_active() / f"{name}.json"
+        return _course_dir(getattr(_CONTEXT, "course_id", None) or _ensure_active()) / f"{name}.json"
     return DATA / f"{name}.json"
 
 
+@transaction
 def active_course_id() -> str:
     ensure_dirs()
     return _ensure_active()
 
 
+@transaction
 def list_courses() -> list[dict[str, Any]]:
     ensure_dirs()
     meta = _read_meta()
@@ -193,7 +241,7 @@ def list_courses() -> list[dict[str, Any]]:
         cid = str(c.get("id") or "")
         if not cid:
             continue
-        d = COURSES / cid
+        d = _course_dir(cid)
         if not d.exists():
             continue
         proj = _read_json_file(d / "project.json", DEFAULTS["project"])
@@ -211,6 +259,7 @@ def list_courses() -> list[dict[str, Any]]:
     return out
 
 
+@transaction
 def create_course(name: str) -> dict[str, Any]:
     ensure_dirs()
     name = (name or "新课程").strip()[:60] or "新课程"
@@ -218,7 +267,7 @@ def create_course(name: str) -> dict[str, Any]:
     base = _course_slug(name)
     cid = base
     i = 2
-    while (COURSES / cid).exists():
+    while (_course_dir(cid)).exists():
         cid = f"{base}-{i}"
         i += 1
     _new_course_dir(cid, name)
@@ -228,19 +277,21 @@ def create_course(name: str) -> dict[str, Any]:
     return {"id": cid, "name": name}
 
 
+@transaction
 def switch_course(cid: str) -> dict[str, Any]:
     ensure_dirs()
     cid = str(cid or "")
-    if not cid or not (COURSES / cid).exists():
+    if not cid or not (_course_dir(cid)).exists():
         raise ValueError("课程不存在")
     meta = _read_meta()
     if not any(c.get("id") == cid for c in meta.get("courses", [])):
         raise ValueError("课程不在课程列表中")
     _write_json_file(ACTIVE, {"id": cid})
-    proj = _read_json_file(COURSES / cid / "project.json", DEFAULTS["project"])
+    proj = _read_json_file(_course_dir(cid) / "project.json", DEFAULTS["project"])
     return {"id": cid, "name": proj.get("course", cid)}
 
 
+@transaction
 def read(name: str) -> dict[str, Any]:
     ensure_dirs()
     with _LOCK:
@@ -248,6 +299,7 @@ def read(name: str) -> dict[str, Any]:
         return _read_json_file(p, DEFAULTS[name])
 
 
+@transaction
 def write(name: str, value: dict[str, Any]) -> None:
     ensure_dirs()
     with _LOCK:
@@ -255,6 +307,7 @@ def write(name: str, value: dict[str, Any]) -> None:
         _write_json_file(p, value)
 
 
+@transaction
 def reset_all(keep_settings: bool = True) -> None:
     settings = read("settings") if keep_settings else json.loads(json.dumps(DEFAULTS["settings"]))
     for name in DEFAULTS:
