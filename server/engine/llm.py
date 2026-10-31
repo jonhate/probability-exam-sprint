@@ -114,17 +114,17 @@ class LLMClient:
                 detail = exc.read().decode("utf-8", "replace")[:800]
             except Exception:
                 pass
-            raise LLMError(f"API HTTP {exc.code}: {detail or exc.reason}", status=exc.code) from exc
+            raise LLMError(f"API HTTP {exc.code}：模型服务请求失败，请检查连接、密钥和配额", status=exc.code) from exc
         except urllib.error.URLError as exc:
             raise LLMError(f"无法连接模型服务：{exc.reason}") from exc
         try:
             data = json.loads(raw)
         except json.JSONDecodeError as exc:
-            raise LLMError(f"模型服务返回了非 JSON：{raw[:300]}") from exc
+            raise LLMError("模型服务返回了非 JSON 响应") from exc
         try:
             content = data["choices"][0]["message"]["content"]
         except (KeyError, IndexError, TypeError) as exc:
-            raise LLMError(f"模型响应结构异常：{raw[:500]}") from exc
+            raise LLMError("模型响应结构异常") from exc
         if isinstance(content, list):
             content = "".join(str(x.get("text", "")) if isinstance(x, dict) else str(x) for x in content)
         usage = data.get("usage") or {}
