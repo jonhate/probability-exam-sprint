@@ -5,6 +5,10 @@ import base64
 import hmac
 import json
 import mimetypes
+import hashlib
+import ipaddress
+import tempfile
+from functools import wraps
 import os
 import re
 import sys
@@ -35,11 +39,55 @@ MAX_TOTAL_UPLOAD = 400 * 1024 * 1024
 # Set this on a public server. When empty, the local app stays password-free.
 ACCESS_TOKEN = os.environ.get("EXAMSPRINT_ACCESS_TOKEN", "").strip()
 
-_JOB_LOCK = threading.Lock()
+_JOB_LOCK = store._LOCK
 _JOB_THREAD: threading.Thread | None = None
 _JOB_STATE: dict[str, Any] = {}
 _SERVER_STARTED = time.time()
 
+
+
+def analysis_revision(project):
+    raw = json.dumps(project.get("analysis"), ensure_ascii=False, sort_keys=True, default=str)
+    return hashlib.sha256(raw.encode()).hexdigest()[:20]
+
+
+def request_scope(fn):
+    @wraps(fn)
+    def wrapped(self):
+        path = urllib.parse.urlparse(self.path).path
+        # Authentication and origin checks precede any state access.
+        if not self._check_auth():
+            return
+        if not ACCESS_TOKEN:
+            hostname = urllib.parse.urlsplit("//" + self.headers.get("Host", "")).hostname
+            if hostname not in {"localhost", "127.0.0.1", "::1"}:
+                return self._error(403, "本地服务仅接受本机地址访问")
+        if fn.__name__ == "do_POST" and not self._same_origin():
+            return self._error(403, "拒绝跨站请求")
+        if fn.__name__ == "do_GET" and path == "/api/health":
+            return fn(self)
+        def run():
+            cid = store.active_course_id()
+            expected = urllib.parse.unquote(self.headers.get("X-Course-ID", ""))
+            if fn.__name__ == "do_POST" and expected and expected != cid:
+                return self._error(409, "课程已在其他窗口切换，请刷新后重试")
+            with store.course_scope(cid):
+                if path == "/api/progress":
+                    rev = self.headers.get("X-Analysis-Revision", "")
+                    if rev and rev != analysis_revision(store.read("project")):
+                        return self._error(409, "冲刺包已更新，请刷新后再记录进度")
+                blocked = {"/api/upload", "/api/import-inbox", "/api/project", "/api/reset", "/api/doc-kind", "/api/delete-doc"}
+                if fn.__name__ == "do_POST" and path in blocked and _JOB_THREAD and _JOB_THREAD.is_alive():
+                    return self._error(409, "生成中，请完成后再修改资料、设置或重置")
+                return fn(self)
+        try:
+            if path in {"/api/ask", "/api/settings/test"}:
+                return run()
+            with store._LOCK:
+                return run()
+        except ValueError as exc:
+            return self._error(400, str(exc))
+    return wrapped
 
 def _now() -> str:
     return datetime.now(store.TZ).isoformat(timespec="seconds")
@@ -79,7 +127,7 @@ def _public_settings() -> dict[str, Any]:
         "base_url": s.get("base_url", "https://api.deepseek.com/v1"),
         "model": s.get("model", "deepseek-chat"),
         "has_key": bool(key),
-        "key_hint": (key[:4] + "…" + key[-4:]) if len(key) >= 10 else ("已配置" if key else ""),
+        "key_hint": "已配置" if key else "",
         "temperature": s.get("temperature", 0.25),
     }
 
@@ -99,7 +147,7 @@ def _build_insights(project: dict[str, Any], progress: dict[str, Any]) -> dict[s
         m = _safe_float(st.get("mastery"), 0)
         if st.get("seen"):
             seen += 1
-            mastery_values.append(m)
+        mastery_values.append(m if st.get("seen") else 0)
         due_at = st.get("due")
         if not st.get("seen"):
             due += 1
@@ -115,7 +163,7 @@ def _build_insights(project: dict[str, Any], progress: dict[str, Any]) -> dict[s
     correct = 0
     for q in questions:
         st = qp.get(q.get("id"), {})
-        for x in st.get("attempts", []):
+        for x in st.get("attempts", [])[-1:]:
             attempts += 1
             if x.get("correct"):
                 correct += 1
@@ -136,7 +184,7 @@ def _build_insights(project: dict[str, Any], progress: dict[str, Any]) -> dict[s
         tc = [cp.get(c["id"], {}) for c in cards if c.get("topic_id") == t.get("id")]
         tm = sum(_safe_float(x.get("mastery")) for x in tc) / max(1, len(tc))
         tq = [qp.get(q["id"], {}) for q in questions if q.get("topic_id") == t.get("id")]
-        ta = [att for st in tq for att in st.get("attempts", [])]
+        ta = [att for st in tq for att in st.get("attempts", [])[-1:]]
         tacc = sum(1 for x in ta if x.get("correct")) / max(1, len(ta)) * 100
         topic_rows.append(
             {
@@ -204,6 +252,7 @@ def _state_payload() -> dict[str, Any]:
         "progress": progress,
         "courses": store.list_courses(),
         "active_course_id": store.active_course_id(),
+        "analysis_revision": analysis_revision(project),
         "insights": _build_insights(project, progress),
         "server": {"time": _now(), "version": "1.0.0", "active_job": bool(_JOB_THREAD and _JOB_THREAD.is_alive())},
     }
@@ -223,14 +272,14 @@ def _merge_corpus_docs(project: dict[str, Any]) -> list[dict[str, Any]]:
     return out
 
 
-def _ingest_path(path: Path, kind_hint: str | None = None, source: str = "") -> dict[str, Any]:
+def _ingest_path(path: Path, kind_hint: str | None = None, source: str = "", original_name: str = "") -> dict[str, Any]:
     ext = path.suffix.lower()
     if ext not in SUPPORTED:
         raise ValueError(f"{path.name}: 不支持 {ext}")
     size = path.stat().st_size
     if size > MAX_UPLOAD:
         raise ValueError(f"{path.name}: 单文件超过 80 MB")
-    filename = safe_filename(path.name)
+    filename = safe_filename(original_name or path.name)
     file_hash = sha256_file(path)
     doc_id = "d_" + file_hash[:12]
     project = store.read("project")
@@ -349,6 +398,7 @@ def _api_analyze(body: dict[str, Any]) -> tuple[int, dict[str, Any]]:
     with _JOB_LOCK:
         if _JOB_THREAD and _JOB_THREAD.is_alive():
             return 409, {"ok": False, "error": "已有分析任务在运行，请等它结束。"}
+        course_id = store.active_course_id()
         project = store.read("project")
         docs = _merge_corpus_docs(project)
         if not docs:
@@ -398,21 +448,29 @@ def _api_analyze(body: dict[str, Any]) -> tuple[int, dict[str, Any]]:
                     force_offline=force_offline,
                 )
                 analysis = pipeline.run()
-                p = store.read("project")
-                p["analysis"] = analysis
-                p["status"] = "ready"
-                p["stale"] = False
-                p["updated_at"] = _now()
-                _JOB_STATE = {
-                    **_JOB_STATE,
-                    "status": "done",
-                    "stage": "done",
-                    "progress": 100,
-                    "message": "冲刺包已生成",
-                    "finished_at": _now(),
-                }
-                p["job"] = _JOB_STATE
-                store.write("project", p)
+                with store._LOCK:
+                    p = store.read("project")
+                    # Archive before replacing the pack; sequential IDs cannot identify content.
+                    previous = store.read("progress")
+                    archive = store.COURSES / course_id / "history"
+                    archive.mkdir(parents=True, exist_ok=True)
+                    store._write_json_file(archive / f"{time.time_ns()}.json", {"analysis": p.get("analysis"), "progress": previous})
+                    store.write("progress", json.loads(json.dumps(store.DEFAULTS["progress"])))
+                    analysis.setdefault("generation", {}).setdefault("warnings", []).append("重新生成已归档旧冲刺包和进度；本版进度从零开始，避免题目编号错配。")
+                    p["analysis"] = analysis
+                    p["status"] = "ready"
+                    p["stale"] = False
+                    p["updated_at"] = _now()
+                    _JOB_STATE = {
+                        **_JOB_STATE,
+                        "status": "done",
+                        "stage": "done",
+                        "progress": 100,
+                        "message": "冲刺包已生成",
+                        "finished_at": _now(),
+                    }
+                    p["job"] = _JOB_STATE
+                    store.write("project", p)
             except Exception as exc:
                 log = store.DATA / "analysis_error.log"
                 try:
@@ -436,7 +494,11 @@ def _api_analyze(body: dict[str, Any]) -> tuple[int, dict[str, Any]]:
                 p["job"] = _JOB_STATE
                 store.write("project", p)
 
-        _JOB_THREAD = threading.Thread(target=worker, name="examsprint-analysis", daemon=True)
+        def pinned_worker():
+            with store.course_scope(course_id):
+                worker()
+
+        _JOB_THREAD = threading.Thread(target=pinned_worker, name="examsprint-analysis", daemon=True)
         _JOB_THREAD.start()
         return 202, {"ok": True, "job": _JOB_STATE}
 
@@ -475,6 +537,8 @@ def _update_progress(body: dict[str, Any]) -> tuple[int, dict[str, Any]]:
         p.setdefault("sessions", []).append({"at": now.isoformat(timespec="seconds"), "type": "card", "id": cid, "rating": rating})
     elif kind == "question":
         qid = str(body.get("id") or "")
+        if not any(q.get("id") == qid for q in (store.read("project").get("analysis") or {}).get("questions", [])):
+            return 404, {"ok": False, "error": "题目不存在，请刷新冲刺包"}
         if not qid:
             return 400, {"ok": False, "error": "缺少题目 id"}
         st = p.setdefault("questions", {}).setdefault(qid, {"attempts": []})
@@ -504,6 +568,8 @@ def _update_progress(body: dict[str, Any]) -> tuple[int, dict[str, Any]]:
         bid = str(body.get("block_id") or body.get("id") or "")
         if not bid:
             return 400, {"ok": False, "error": "缺少计划块 id"}
+        if not any(b.get("id") == bid for d in (store.read("project").get("analysis") or {}).get("plan", []) for b in d.get("blocks", [])):
+            return 404, {"ok": False, "error": "计划块不存在"}
         p.setdefault("plan", {})[bid] = bool(body.get("done", True))
         p.setdefault("sessions", []).append({"at": now.isoformat(timespec="seconds"), "type": "plan", "id": bid})
     else:
@@ -511,7 +577,7 @@ def _update_progress(body: dict[str, Any]) -> tuple[int, dict[str, Any]]:
     p["sessions"] = p.get("sessions", [])[-300:]
     store.write("progress", p)
     project = store.project_with_runtime()
-    return 200, {"ok": True, "insights": _build_insights(project, p)}
+    return 200, {"ok": True, "progress": p, "insights": _build_insights(project, p)}
 
 
 class ExamSprintServer(ThreadingHTTPServer):
@@ -573,9 +639,18 @@ class Handler(BaseHTTPRequestHandler):
     def _error(self, status: int, message: str) -> None:
         self._json(status, {"ok": False, "error": message})
 
+    def _same_origin(self):
+        if self.headers.get("Sec-Fetch-Site") == "cross-site":
+            return False
+        origin = self.headers.get("Origin")
+        if not origin:
+            return True
+        parsed = urllib.parse.urlsplit(origin)
+        return parsed.scheme in ("http", "https") and parsed.netloc == self.headers.get("Host")
+
     def _read_body(self, limit: int = MAX_UPLOAD + 1024) -> bytes:
         n = int(self.headers.get("Content-Length", "0") or 0)
-        if n > limit:
+        if n < 0 or n > limit:
             raise ValueError("请求体过大")
         if n <= 0:
             return b""
@@ -596,6 +671,7 @@ class Handler(BaseHTTPRequestHandler):
     # ------------------------------------------------------------------
     # routing
     # ------------------------------------------------------------------
+    @request_scope
     def do_GET(self) -> None:
         if not self._check_auth():
             return
@@ -619,6 +695,7 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as exc:
             return self._error(500, f"服务器错误：{exc}")
 
+    @request_scope
     def do_POST(self) -> None:
         if not self._check_auth():
             return
@@ -691,10 +768,12 @@ class Handler(BaseHTTPRequestHandler):
             raise ValueError(f"不支持 {ext}，请上传 PPTX / PDF / DOCX / XLSX / TXT / MD")
         tmp_dir = store.DATA / "upload_tmp"
         tmp_dir.mkdir(parents=True, exist_ok=True)
-        tmp = tmp_dir / f"up_{int(time.time() * 1000)}_{safe_filename(filename)}"
-        tmp.write_bytes(body)
+        fd, tmp_name = tempfile.mkstemp(suffix=ext, dir=tmp_dir)
+        tmp = Path(tmp_name)
+        with os.fdopen(fd, "wb") as stream:
+            stream.write(body)
         try:
-            result = _ingest_path(tmp, None if kind == "auto" else kind, source="upload")
+            result = _ingest_path(tmp, None if kind == "auto" else kind, source="upload", original_name=filename)
         finally:
             try:
                 tmp.unlink()
@@ -914,6 +993,12 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8765")))
     parser.add_argument("--no-browser", action="store_true")
     args = parser.parse_args()
+    try:
+        local_bind = args.host.lower() == "localhost" or ipaddress.ip_address(args.host).is_loopback
+    except ValueError:
+        local_bind = False
+    if not local_bind and not ACCESS_TOKEN:
+        parser.error("非本机监听必须配置 EXAMSPRINT_ACCESS_TOKEN")
     store.ensure_dirs()
     _repair_interrupted_job()
     try:
