@@ -134,7 +134,7 @@
       }
       if (!S.initialViewDone) {
         const fresh = !(S.data.insights?.card_seen || 0) && !(S.data.insights?.attempts || 0);
-        if (S.data.project.analysis?.zero_base?.enabled && fresh) S.view = "zero";
+        if (fresh) S.view = "dashboard";
         S.initialViewDone = true;
       }
       if (!S.data.project.analysis && !["dashboard", "docs", "practice", "mock", "errors", "study", "map", "zero"].includes(S.view)) S.view = "dashboard";
@@ -164,7 +164,7 @@
     $("#courseLine").innerHTML = `${esc(a?.course || p.course || "我的课程")} <span class="course-caret">⌄</span>`;
     const modeLabel = a?.zero_base?.enabled ? "零基础模式" : a?.generation?.mode === "llm" ? "AI 已生成" : a?.generation?.mode === "curated" ? "真题精编" : "离线框架";
     $("#topbarSub").textContent = a
-      ? `${a.topics?.length || 0} 个考点 · 准备度 ${insights().readiness || 0}% · ${modeLabel}`
+      ? `${a.topics?.length || 0} 个考点 · ${insights().learning?.independent_topics || 0} 个有独立作答记录 · ${modeLabel}`
       : (p.docs?.length ? `${p.docs.length} 份资料待生成` : "把课件变成考前作战图");
     const d = currentExamDays();
     $("#countdownDays").textContent = d === null ? "—" : (d < 0 ? "—" : d);
@@ -303,9 +303,45 @@
     return `<div class="ring"><svg viewBox="0 0 118 118"><circle class="ring-bg" cx="59" cy="59" r="50" fill="none" stroke-width="8"/><circle class="ring-fill" cx="59" cy="59" r="50" fill="none" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c * (1 - v / 100)).toFixed(1)}"/></svg><div class="ring-label"><b>${v}</b><span>准备度</span></div></div>`;
   }
 
+  function renderLearningHome(l) {
+    const messages = { session_done: "本次时间预算已用完，先休息；准备好后设置下一次预算。", expired: "考试日期已过，请在资料箱更新日期后安排下一轮。", rest: "今天记录的训练已用完预算，先休息。", waiting: "当前任务需要间隔复测，稍后回来；也可以查看资料。", short_budget: "当前时间不足以完成候选题，请增加本次时间，或进入速学页补一个步骤。", no_questions: "先在资料箱准备可练习的题目。" };
+    return `<div class="page-head"><div><div class="eyebrow">NEXT STEP</div><h1>这一次，完成一个可检查的进步</h1><p>先作答，再决定下一步。提示、部分完成和独立完成分别记录。</p></div></div>
+    <div class="card card-pad"><label for="sessionBudget">这次可以学习多久？</label> <select id="sessionBudget">${[5,10,15,25,45,60].map(n => `<option value="${n}" ${n === l.session_minutes ? 'selected' : ''}>${n} 分钟</option>`).join('')}</select> <button class="btn btn-sm" data-action="save-budget">开始 / 重设本次预算</button><p class="small muted">本次剩余 ${l.session_remaining} 分钟 · 今日已记录作答 ${l.tracked_minutes} 分钟 · 每日预算剩余 ${l.daily_remaining} 分钟。用时包含本题提示阅读，不含其他页面学习。</p></div>
+    <div class="learning-tasks">${l.tasks.map((t,i) => `<article class="card card-pad"><div class="eyebrow">${i ? '候选任务 · 完成上一题后重排' : '现在开始'} · 约 ${t.minutes} 分钟</div><h2>${esc(t.title)}</h2><p>${esc(t.reason)}</p><div class="info-box"><b>完成条件：</b>${esc(t.criterion)}</div><button class="btn btn-accent" style="margin-top:16px" data-learning-task="${i}">${i ? '选择这项' : '开始这项任务'}</button></article>`).join('') || `<div class="card card-pad"><h2>${esc(messages[l.status] || '暂时没有任务')}</h2>${l.next_review_at ? `<p>最早复测：${esc(new Date(l.next_review_at).toLocaleString())}</p>` : ''}<button class="btn" data-nav="docs">调整考试设置</button><button class="btn" data-nav="study">查看速学</button></div>`}</div>
+    <div class="card card-pad"><h2>能力证据</h2><p class="small muted">单题通过只代表该题；不同题目通过也不保证考试迁移。旧进度缺少提示信息，需重新验证独立完成。</p><div class="evidence-list">${l.topics.map(t => `<div><b>${esc(t.name)}</b><span>${esc(t.label)} · ${t.independent_questions}/${t.question_count} 道有独立完成记录</span></div>`).join('')}</div></div>
+    <p class="small muted">${esc(l.note)}</p><div class="hero-actions"><button class="btn" data-nav="map">资料与考点</button><button class="btn" data-nav="practice">自由练习</button><button class="btn" data-nav="mock">限时模考</button><button class="btn" data-nav="zero">基础工具</button></div>`;
+  }
+
+  async function startLearningTask(index = 0) {
+    try {
+      const selectedTask = S.data.insights.learning?.tasks[index];
+      const fresh = await api("/api/state");
+      if (fresh.active_course_id !== S.data.active_course_id || fresh.analysis_revision !== S.data.analysis_revision) { await load(); toast("课程已变化，请重新选择任务"); return; }
+      S.data = fresh;
+      const task = fresh.insights.learning?.tasks.find(t => t.question_id === selectedTask?.question_id && t.phase === selectedTask?.phase);
+      if (!task) { S.view = "dashboard"; render(); return; }
+      const q = allQuestions().find(x => x.id === task.question_id);
+      if (!q) return;
+      S.practice = { questions: [q], index: 0, selected: [], openAnswer: "", submitted: false, result: null, recorded: false, correct: 0, answered: 0, task, startedAt: Date.now(), assisted: false };
+      S.view = "practice"; render();
+    } catch (err) { toast(err.message, "error"); }
+  }
+
+  function attemptEvidence(s, assessment = "objective", partial = false) {
+    return { completed_steps: $$("[data-check-step]:checked").map(el => Number(el.dataset.checkStep)), assisted: !!s.assisted, elapsed_seconds: Math.max(0, (Date.now() - (s.startedAt || Date.now())) / 1000), partial, assessment, error_type: $("#practiceError")?.value || "unknown" };
+  }
+
+  async function saveBudget() {
+    try {
+      const result = await api("/api/progress", {method:"POST", body:{type:"preferences",session_minutes:Number($("#sessionBudget").value)}});
+      S.data.insights = result.insights; S.data.progress = result.progress; render();
+    } catch (err) { toast(err.message, "error"); }
+  }
+
   function renderDashboard() {
     const a = analysis();
     const ins = insights();
+    if (ins.learning) return renderLearningHome(ins.learning);
     const p = S.data.project;
     const days = currentExamDays();
     const today = a.plan?.[0];
@@ -647,11 +683,15 @@
     const isOpen = ["short", "calculation", "essay"].includes(q.type);
     const correctSet = correctLetters(q);
     const objective = !isOpen;
+    if (!s.startedAt) s.startedAt = Date.now();
+    const guide = s.task || (analysis()?.topics || []).find(t => t.id === q.topic_id)?.guide || {};
     return `<div class="practice-shell">
       <div class="practice-top"><button class="text-btn" data-action="exit-practice">← 退出</button><span>第 ${s.index + 1} / ${s.questions.length} 题</span><div class="bar"><span style="width:${((s.index) / s.questions.length) * 100}%"></span></div></div>
       <div class="card card-pad">
         <div class="qmeta"><span class="badge badge-accent">${TYPE_LABEL[q.type] || q.type}</span><span class="badge badge-muted">${esc(q.topic || "综合")}</span><span class="badge badge-gold">难度 ${q.difficulty || 2}/5</span></div>
+        ${s.task ? `<div class="info-box">${esc(s.task.title)} · 约 ${s.task.minutes} 分钟<br>${esc(s.task.criterion)}</div>` : ''}
         <div class="qstem">${rich(q.stem)}</div>
+        ${!s.submitted ? `<div class="learning-help"><button class="btn btn-sm" data-action="practice-help">${s.assisted ? '已使用辅助' : '卡住了：看必要讲解'}</button><label><input type="checkbox" id="practiceAssisted" ${s.assisted ? 'checked' : ''}> 我使用了提示或查阅了资料</label>${s.assisted ? `<div class="info-box">${rich(guide.guide || guide.two_minute || '先列已知条件，确认题目要求，再写第一步。')}<br>${rich(guide.example || guide.worked_example || '')}</div>` : ''}</div>` : ''}
         ${isOpen ? `<div class="answer-area"><textarea id="practiceAnswer" placeholder="写出你的答案。先列关键词，再补成句子。" ${s.submitted ? "disabled" : ""}>${esc(s.openAnswer || "")}</textarea></div>` : `<div class="options">${optionHTML(q, selected, s.submitted, correctSet, objective)}</div>`}
         ${s.submitted ? practiceFeedbackHTML(q, s) : ""}
         <div class="qfooter"><span class="tiny muted">${isOpen ? "简答题提交后自评" : "提交后立即判分"}</span>
@@ -703,10 +743,12 @@
     }).join("；");
   }
 
+  function rubricSteps(q) { return String(q.rubric || "").split(/[；;\n]+/).map(x => x.trim()).filter(Boolean).slice(0,12); }
+
   function practiceFeedbackHTML(q, s) {
     const isOpen = ["short", "calculation", "essay"].includes(q.type);
     if (isOpen && s.result === null) {
-      return `<div class="feedback correct"><h4>对照参考答案自评</h4><div class="model-answer">${rich(q.answer || "资料未给出答案")}</div>${q.rubric ? `<p><b>评分点：</b>${esc(q.rubric)}</p>` : ""}<div class="self-grade"><span class="small">你答到了吗？</span><button class="btn btn-sm btn-green" data-self-grade="1">答到了</button><button class="btn btn-sm btn-danger" data-self-grade="0">没答到</button></div></div>`;
+      return `<div class="feedback correct"><h4>对照参考答案自评</h4><div class="model-answer">${rich(q.answer || "资料未给出答案")}</div>${q.rubric ? `<p><b>评分点：</b>${esc(q.rubric)}</p>` : ""}<div class="learning-help">${rubricSteps(q).map((step,i) => `<label><input type="checkbox" data-check-step="${i}"> ${esc(step)}</label>`).join("")}</div><label>主要卡点 <select id="practiceError"><option value="unknown">无 / 尚不确定</option value="conditions">适用条件</option><option value="procedure">列式与步骤</option><option value="concept">概念理解</option><option value="calculation">计算</option><option value="reading">审题</option><option value="time">用时过长</option></select></label><div class="self-grade"><span class="small">核对每个评分点后记录：</span><button class="btn btn-sm btn-green" data-self-grade="1">完整完成</button><button class="btn btn-sm" data-self-grade="partial">部分步骤完成</button><button class="btn btn-sm btn-danger" data-self-grade="0">尚未完成</button></div></div>`;
     }
     const good = s.result === true;
     return `<div class="feedback ${good ? "correct" : "wrong"}"><h4>${good ? "答对了" : "这题要回炉"}</h4>
@@ -732,7 +774,7 @@
       || (priorities.get(b.topic_id) || 0) - (priorities.get(a.topic_id) || 0)
       || String(lastAttempt(a)?.at || "").localeCompare(String(lastAttempt(b)?.at || "")));
     if (mode !== "all" && mode !== "wrong") qs = qs.slice(0, Number(mode) || 10);
-    S.practice = { questions: qs, index: 0, selected: [], openAnswer: "", submitted: false, result: null, recorded: false, correct: 0, answered: 0, answerDisplay: "" };
+    S.practice = { questions: qs, index: 0, selected: [], openAnswer: "", submitted: false, result: null, recorded: false, correct: 0, answered: 0, answerDisplay: "", startedAt: Date.now(), assisted: false };
     S.view = "practice";
     render();
   }
@@ -741,6 +783,7 @@
     const s = S.practice; if (!s || s.submitted) return;
     const q = s.questions[s.index];
     const isOpen = ["short", "calculation", "essay"].includes(q.type);
+    s.assisted = s.assisted || !!$("#practiceAssisted")?.checked;
     if (!isOpen && !(s.selected || []).length) { toast("先选一个答案", "error"); return; }
     if (isOpen) {
       const ta = $("#practiceAnswer");
@@ -757,7 +800,7 @@
     const good = sameAnswer(s.selected, correctLetters(q));
     const answer = selectedDisplay(q, s.selected);
     try {
-      const r = await api("/api/progress", { method: "POST", body: { type: "question", id: q.id, correct: good, answer } });
+      const r = await api("/api/progress", { method: "POST", body: { type: "question", id: q.id, correct: good, answer, ...attemptEvidence(s) } });
       S.data.insights = r.insights; if (r.progress) S.data.progress = r.progress;
       s.submitted = true; s.result = good; s.answerDisplay = answer;
       s.answered += 1; if (good) s.correct += 1; s.recorded = true;
@@ -772,12 +815,13 @@
     return A === B;
   }
 
-  async function selfGradePractice(good) {
+  async function selfGradePractice(good, partial = false) {
     const s = S.practice; if (!s || s.result !== null || s.saving) return;
     const q = s.questions[s.index];
+    if (good && $$("[data-check-step]:checked").length < rubricSteps(q).length) { toast("请逐项核对评分点；未全部完成可记录部分完成", "error"); return; }
     s.saving = true;
     try {
-      const r = await api("/api/progress", { method: "POST", body: { type: "question", id: q.id, correct: !!good, answer: s.openAnswer || "" } });
+      const r = await api("/api/progress", { method: "POST", body: { type: "question", id: q.id, correct: !!good, answer: s.openAnswer || "", ...attemptEvidence(s, "self", partial) } });
       S.data.insights = r.insights; if (r.progress) S.data.progress = r.progress;
       s.result = !!good; s.answered += 1; if (good) s.correct += 1; s.recorded = true;
       render();
@@ -788,11 +832,12 @@
   function nextPractice() {
     const s = S.practice; if (!s) return;
     if (s.index + 1 >= s.questions.length) { s.done = true; render(); return; }
-    s.index += 1; s.selected = []; s.openAnswer = ""; s.submitted = false; s.result = null; s.recorded = false; s.answerDisplay = ""; render();
+    s.index += 1; s.selected = []; s.openAnswer = ""; s.submitted = false; s.result = null; s.recorded = false; s.answerDisplay = ""; s.startedAt = Date.now(); s.assisted = false; render();
   }
 
   function renderPracticeResult() {
     const s = S.practice;
+    if (s.task) return `<div class="card card-pad"><div class="eyebrow">TASK RECORDED</div><h1>${s.result ? (s.assisted ? '辅助完成，下一步检查独立作答' : '本题独立完成已记录') : '卡点已记录，下一步调整训练'}</h1><p>本题记录已用于重新安排任务；单题通过不代表整个考点掌握。</p><button class="btn btn-accent" data-action="learning-home">查看下一步</button></div>`;
     const acc = s.answered ? Math.round((s.correct / s.answered) * 100) : 0;
     return `<div class="practice-shell"><div class="card result-hero">
       <div class="eyebrow">SESSION COMPLETE</div><div class="score">${acc}<small>%</small></div>
@@ -1393,7 +1438,10 @@
       else if (action === "next-practice") nextPractice();
       else if (action === "exit-practice") { S.practice = null; S.view = "practice"; render(); }
       else if (action === "restart-practice") { S.practice = null; render(); }
-      else if (action === "start-today") { S.view = "study"; S.studyTab = "flashcards"; rebuildCardOrder(); render(); }
+      else if (action === "start-today") startLearningTask(0);
+      else if (action === "save-budget") saveBudget();
+      else if (action === "learning-home") { S.practice = null; S.view = "dashboard"; await load(); }
+      else if (action === "practice-help") { if (S.practice) { S.practice.openAnswer = $("#practiceAnswer")?.value || S.practice.openAnswer; S.practice.assisted = true; render(); } }
       else if (action === "start-zero") { document.getElementById("zeroTools")?.scrollIntoView({ behavior: "smooth", block: "start" }); }
       else if (action === "scroll-zero-diag") { document.getElementById("zeroDiag")?.scrollIntoView({ behavior: "smooth", block: "start" }); }
       else if (action === "quick-practice") startPractice("10");
@@ -1407,6 +1455,8 @@
       else if (action === "ignore") {}
       return;
     }
+    const taskBtn = e.target.closest("[data-learning-task]");
+    if (taskBtn) { await startLearningTask(Number(taskBtn.dataset.learningTask)); return; }
     const planBtn = e.target.closest("[data-plan-id]");
     if (planBtn) {
       const id = planBtn.dataset.planId;
@@ -1461,7 +1511,7 @@
       render(); return;
     }
     const self = e.target.closest("[data-self-grade]");
-    if (self) { selfGradePractice(self.dataset.selfGrade === "1"); return; }
+    if (self) { selfGradePractice(self.dataset.selfGrade === "1", self.dataset.selfGrade === "partial"); return; }
     const start = e.target.closest("[data-start-practice]");
     if (start) { startPractice(start.dataset.startPractice); return; }
     const errRedo = e.target.closest("[data-error-redo]");
@@ -1498,6 +1548,7 @@
   });
 
   document.addEventListener("change", (e) => {
+    if (e.target.id === "practiceAssisted" && S.practice) { S.practice.assisted = S.practice.assisted || e.target.checked; e.target.checked = S.practice.assisted; }
     const kind = e.target.closest("[data-doc-kind]");
     if (kind) { changeDocKind(kind.dataset.docKind, kind.value); return; }
     const score = e.target.closest("[data-mock-score]");
