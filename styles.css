@@ -782,3 +782,13 @@ kbd { font: 600 9px/1 var(--mono); background: #eee7d8; border: 1px solid #d8cfb
   .card { box-shadow: none; border-color: #bbb; }
   .view-root { animation: none; }
 }
+
+/* Focused learning workflow */
+.learning-tasks {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px;margin:20px 0}
+.learning-tasks h2 {margin:10px 0;font-size:24px}
+.learning-help {display:grid;gap:12px;margin:16px 0}
+.learning-help label {font-size:13px}
+#sessionBudget {min-height:38px;border:1px solid var(--line-strong);border-radius:9px;background:#fffefb;color:var(--ink);padding:6px 9px;margin:0 8px 0 0;}
+@media (max-width:520px){#sessionBudget{width:100%;margin:8px 0;}}
+.evidence-list>div {display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.evidence-list span {color:var(--muted);font-size:13px}
