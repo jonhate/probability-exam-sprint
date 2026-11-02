@@ -1,0 +1,16 @@
+{
+  "name": "ExamSprint · 考前冲刺",
+  "short_name": "ExamSprint",
+  "description": "零基础也能用的考前冲刺 Agent：考点、记忆卡、刷题和模拟卷。",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f6f1e7",
+  "theme_color": "#1f2a24",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
