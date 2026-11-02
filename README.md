@@ -15,10 +15,13 @@
 - PWA 使用 v4 缓存，课程数据改为 network-first，避免旧题库长期缓存。
 - 本次已重建 PWA、Render 云端副本和 Android APK。
 
-这个仓库包含两部分：
+这个仓库包含：
 
 - 根目录：零依赖静态网页（GitHub Pages 已上线）
 - `server/`：完整 Python 后端（上传资料、重新生成、DeepSeek 问答、导出）
+- `server/tests/`、`server/tools/`、`server/docs/`：测试、课程工具和研究说明
+- `mobile/android/`：Android WebView 壳工程源码
+- `SOURCE_MAP.md`：完整仓库边界与未上传内容说明
 
 ## 手机安装
 
