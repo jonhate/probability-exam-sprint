@@ -1,12 +1,12 @@
 {
   "version": 1,
   "course": "概率统计（期中冲刺）",
-  "exam_date": "2026-10-30",
+  "exam_date": "2026-11-04",
   "days": 3,
   "hours_per_day": 6,
   "mode": "sprint",
   "created_at": "2026-10-27T19:45:50+08:00",
-  "updated_at": "2026-10-27T21:35:02+08:00",
+  "updated_at": "2026-11-02T13:52:00+08:00",
   "status": "ready",
   "docs": [
     {
@@ -148,7 +148,7 @@
   "analysis": {
     "version": 2,
     "course": "概率统计（期中冲刺）",
-    "exam_date": "2026-10-30",
+    "exam_date": "2026-11-04",
     "days": 3,
     "hours_per_day": 6,
     "course_summary": "期中范围锁定 Ch1–Ch4：事件与概率、一维随机变量、二维随机变量、数字特征。卷面 100 分中 70 分是五道固定模板计算题；先把这 70 分练成条件反射，再用 30 分填空选择补概念。不要从第一页 PPT 开始看。",
