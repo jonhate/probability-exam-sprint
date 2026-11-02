@@ -27,7 +27,7 @@ APP_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(APP_DIR))
 sys.path.insert(0, str(APP_DIR / "vendor"))
 
-from engine import exports, store  # noqa: E402
+from engine import learning, exports, store  # noqa: E402
 from engine.llm import LLMClient, LLMError  # noqa: E402
 from engine.parsers import SUPPORTED, parse_file  # noqa: E402
 from engine.pipeline import AnalysisError, Pipeline  # noqa: E402
@@ -217,7 +217,11 @@ def _build_insights(project: dict[str, Any], progress: dict[str, Any]) -> dict[s
             next_action = f"补最弱考点：{weakest['name']}"
         else:
             next_action = "做一套限时仿真卷"
+    learning_plan = learning.build_learning(project, progress)
+    if learning_plan["tasks"]:
+        next_action = learning_plan["tasks"][0]["title"]
     return {
+        "learning": learning_plan,
         "readiness": readiness,
         "card_total": len(cards),
         "card_seen": seen,
@@ -507,7 +511,13 @@ def _update_progress(body: dict[str, Any]) -> tuple[int, dict[str, Any]]:
     p = store.read("progress")
     kind = str(body.get("type") or "")
     now = datetime.now(store.TZ)
-    if kind == "card":
+    if kind == "preferences":
+        session = learning.number(body.get("session_minutes"), -1)
+        if session not in (5, 10, 15, 25, 45, 60):
+            return 400, {"ok": False, "error": "请选择5、10、15、25、45或60分钟"}
+        p.setdefault("preferences", {})["session_minutes"] = int(session)
+        p["preferences"]["session_started_at"] = now.isoformat(timespec="microseconds")
+    elif kind == "card":
         cid = str(body.get("id") or "")
         rating = str(body.get("rating") or "good")
         if not cid:
@@ -541,12 +551,27 @@ def _update_progress(body: dict[str, Any]) -> tuple[int, dict[str, Any]]:
             return 404, {"ok": False, "error": "题目不存在，请刷新冲刺包"}
         if not qid:
             return 400, {"ok": False, "error": "缺少题目 id"}
+        q = next(q for q in (store.read("project").get("analysis") or {}).get("questions", []) if q.get("id") == qid)
+        raw_steps = body.get("completed_steps", [])
+        if not isinstance(raw_steps, list):
+            return 400, {"ok": False, "error": "评分点记录格式错误"}
+        completed_steps = sorted({i for i in raw_steps if type(i) is int and 0 <= i < len(learning.checkpoints(q))})
+        if body.get("assessment") == "self" and body.get("correct") and len(completed_steps) < len(learning.checkpoints(q)):
+            return 400, {"ok": False, "error": "请逐项核对评分点；未全部完成可记录为部分完成"}
         st = p.setdefault("questions", {}).setdefault(qid, {"attempts": []})
         st.setdefault("attempts", []).append(
             {
                 "at": now.isoformat(timespec="seconds"),
                 "correct": bool(body.get("correct")),
                 "answer": str(body.get("answer") or "")[:2000],
+                "assisted": body.get("assisted") if isinstance(body.get("assisted"), bool) else None,
+                "elapsed_seconds": max(0, min(7200, learning.number(body.get("elapsed_seconds")))),
+                "partial": body.get("partial") is True,
+                "completed_steps": completed_steps,
+                "error_type": body.get("error_type") if body.get("error_type") in learning.ERRORS else "unknown",
+                "evidence_version": 1 if isinstance(body.get("assisted"), bool) else 0,
+                "assessment": "self" if body.get("assessment") == "self" else "objective",
+
             }
         )
         st["attempts"] = st["attempts"][-30:]
