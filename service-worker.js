@@ -1,5 +1,5 @@
 /* ExamSprint static PWA. Cache first for study assets, network first for navigation. */
-const CACHE = "examsprint-static-v4";
+const CACHE = "examsprint-static-v5";
 const ASSETS = [
   "./",
   "./index.html",
