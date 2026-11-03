@@ -183,7 +183,7 @@
     } else if (job.status === "error") {
       banner.innerHTML = `<div class="error-box"><b>上次生成失败：</b>${esc(job.error || job.message || "未知错误")} <button class="text-btn" data-action="open-settings">检查模型设置</button> 或到资料箱重新生成。</div>`;
     } else if (a?.zero_base?.enabled && S.view !== "zero") {
-      banner.innerHTML = `<div class="info-box" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><b>零基础模式已开启。</b> 不要从 S 级全部开始，先走 6 个工具 + M1–M4。 <button class="text-btn" data-nav="zero">回到零基础路线</button></div>`;
+      banner.innerHTML = `<div class="info-box" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><b>零基础模式已开启。</b> 首页会按顺序带你做，不需要自己判断水平或选路线。 <button class="text-btn" data-nav="zero">需要补基础工具时再看</button></div>`;
     }
     hydrateIcons(banner);
   }
@@ -304,12 +304,35 @@
   }
 
   function renderLearningHome(l) {
-    const messages = { session_done: "本次时间预算已用完，先休息；准备好后设置下一次预算。", expired: "考试日期已过，请在资料箱更新日期后安排下一轮。", rest: "今天记录的训练已用完预算，先休息。", waiting: "当前任务需要间隔复测，稍后回来；也可以查看资料。", short_budget: "当前时间不足以完成候选题，请增加本次时间，或进入速学页补一个步骤。", no_questions: "先在资料箱准备可练习的题目。" };
-    return `<div class="page-head"><div><div class="eyebrow">NEXT STEP</div><h1>这一次，完成一个可检查的进步</h1><p>先作答，再决定下一步。提示、部分完成和独立完成分别记录。</p></div></div>
-    <div class="card card-pad"><label for="sessionBudget">这次可以学习多久？</label> <select id="sessionBudget">${[5,10,15,25,45,60].map(n => `<option value="${n}" ${n === l.session_minutes ? 'selected' : ''}>${n} 分钟</option>`).join('')}</select> <button class="btn btn-sm" data-action="save-budget">开始 / 重设本次预算</button><p class="small muted">本次剩余 ${l.session_remaining} 分钟 · 今日已记录作答 ${l.tracked_minutes} 分钟 · 每日预算剩余 ${l.daily_remaining} 分钟。用时包含本题提示阅读，不含其他页面学习。</p></div>
-    <div class="learning-tasks">${l.tasks.map((t,i) => `<article class="card card-pad"><div class="eyebrow">${i ? '候选任务 · 完成上一题后重排' : '现在开始'} · 约 ${t.minutes} 分钟</div><h2>${esc(t.title)}</h2><p>${esc(t.reason)}</p><div class="info-box"><b>完成条件：</b>${esc(t.criterion)}</div><button class="btn btn-accent" style="margin-top:16px" data-learning-task="${i}">${i ? '选择这项' : '开始这项任务'}</button></article>`).join('') || `<div class="card card-pad"><h2>${esc(messages[l.status] || '暂时没有任务')}</h2>${l.next_review_at ? `<p>最早复测：${esc(new Date(l.next_review_at).toLocaleString())}</p>` : ''}<button class="btn" data-nav="docs">调整考试设置</button><button class="btn" data-nav="study">查看速学</button></div>`}</div>
-    <div class="card card-pad"><h2>能力证据</h2><p class="small muted">单题通过只代表该题；不同题目通过也不保证考试迁移。旧进度缺少提示信息，需重新验证独立完成。</p><div class="evidence-list">${l.topics.map(t => `<div><b>${esc(t.name)}</b><span>${esc(t.label)} · ${t.independent_questions}/${t.question_count} 道有独立完成记录</span></div>`).join('')}</div></div>
-    <p class="small muted">${esc(l.note)}</p><div class="hero-actions"><button class="btn" data-nav="map">资料与考点</button><button class="btn" data-nav="practice">自由练习</button><button class="btn" data-nav="mock">限时模考</button><button class="btn" data-nav="zero">基础工具</button></div>`;
+    const messages = { session_done: "这一段完成了。先休息；准备好后继续下一段，我会接着安排。", expired: "考试日期已过，请在资料箱更新日期后安排下一轮。", rest: "今天记录的训练已用完预算，先休息。", waiting: "这一项需要间隔复测，稍后回来；到时间我会给你下一步。", short_budget: "现在只剩一点时间。跟我说“继续”，我先给你一个 5 分钟的小任务。", no_questions: "先在资料箱准备可练习的题目。" };
+    const task = l.tasks?.[0];
+    const more = (l.tasks?.length || 0) > 1 ? `后面还有 ${l.tasks.length - 1} 个候补，做完这一题我会自动重排，不需要你挑。` : "";
+    const focus = task ? `
+      <section class="card card-pad learning-focus">
+        <div class="eyebrow">今天由我带你 · 第 1 步 · 约 ${task.minutes} 分钟</div>
+        <h1>${esc(task.title)}</h1>
+        <p class="learning-lead">${esc(task.reason)}</p>
+        <div class="info-box"><b>你现在只需要做一件事：</b>${esc(task.criterion)}</div>
+        <button class="btn btn-accent btn-lg" data-learning-task="0">开始，带我学 ${icon("arrow")}</button>
+        <p class="small muted learning-focus-note">不用判断自己是什么水平，也不用选题。做完这一题，我会根据你的作答安排下一步。${more}</p>
+      </section>` : `
+      <section class="card card-pad learning-focus">
+        <div class="eyebrow">先等一下</div><h1>${esc(messages[l.status] || "暂时没有任务")}</h1>
+        ${l.next_review_at ? `<p>最早复测：${esc(new Date(l.next_review_at).toLocaleString())}</p>` : ""}
+        <div class="hero-actions"><button class="btn btn-accent" data-action="continue-session">继续，给我下一步</button><button class="btn" data-nav="docs">调整考试设置</button><button class="btn" data-nav="study">查看速学</button></div>
+      </section>`;
+    return `<div class="page-head"><div><div class="eyebrow">NEXT STEP</div><h1>别想了，跟我做这一步</h1><p>我已经按考点性价比和你的作答记录排好顺序。你只负责做，我负责决定下一步。</p></div></div>
+    ${focus}
+    <details class="learning-advanced">
+      <summary>时间不够 / 想自己调一下本次预算</summary>
+      <div class="card card-pad"><label for="sessionBudget">本次预算</label> <select id="sessionBudget">${[5,10,15,25,45,60].map(n => `<option value="${n}" ${n === l.session_minutes ? 'selected' : ''}>${n} 分钟</option>`).join('')}</select> <button class="btn btn-sm" data-action="save-budget">更新预算</button><p class="small muted">本次剩余 ${l.session_remaining} 分钟 · 今日已记录作答 ${l.tracked_minutes} 分钟 · 每日预算剩余 ${l.daily_remaining} 分钟。默认按 15 分钟安排；只有你主动调整时才需要管它。</p></div>
+    </details>
+    <details class="learning-advanced">
+      <summary>我看到的证据（可选查看）</summary>
+      <div class="card card-pad"><p class="small muted">单题通过只代表该题；不同题目通过也不保证考试迁移。旧进度缺少提示信息，需重新验证独立完成。</p><div class="evidence-list">${l.topics.map(t => `<div><b>${esc(t.name)}</b><span>${esc(t.label)} · ${t.independent_questions}/${t.question_count} 道有独立完成记录</span></div>`).join("")}</div></div>
+    </details>
+    <p class="small muted">${esc(l.note)}</p>
+    <details class="learning-advanced"><summary>备用入口（不需要现在选）</summary><div class="hero-actions"><button class="btn" data-nav="map">资料与考点</button><button class="btn" data-nav="practice">自由练习</button><button class="btn" data-nav="mock">限时模考</button><button class="btn" data-nav="zero">基础工具</button></div></details>`;
   }
 
   async function startLearningTask(index = 0) {
@@ -331,9 +354,10 @@
     return { completed_steps: $$("[data-check-step]:checked").map(el => Number(el.dataset.checkStep)), assisted: !!s.assisted, elapsed_seconds: Math.max(0, (Date.now() - (s.startedAt || Date.now())) / 1000), partial, assessment, error_type: $("#practiceError")?.value || "unknown" };
   }
 
-  async function saveBudget() {
+  async function saveBudget(minutes = null) {
     try {
-      const result = await api("/api/progress", {method:"POST", body:{type:"preferences",session_minutes:Number($("#sessionBudget").value)}});
+      const value = Number(minutes || $("#sessionBudget")?.value || 15);
+      const result = await api("/api/progress", {method:"POST", body:{type:"preferences",session_minutes:value}});
       S.data.insights = result.insights; S.data.progress = result.progress; render();
     } catch (err) { toast(err.message, "error"); }
   }
@@ -837,7 +861,7 @@
 
   function renderPracticeResult() {
     const s = S.practice;
-    if (s.task) return `<div class="card card-pad"><div class="eyebrow">TASK RECORDED</div><h1>${s.result ? (s.assisted ? '辅助完成，下一步检查独立作答' : '本题独立完成已记录') : '卡点已记录，下一步调整训练'}</h1><p>本题记录已用于重新安排任务；单题通过不代表整个考点掌握。</p><button class="btn btn-accent" data-action="learning-home">查看下一步</button></div>`;
+    if (s.task) return `<div class="card card-pad"><div class="eyebrow">TASK RECORDED</div><h1>${s.result ? (s.assisted ? '这一步记下了，下一步检查独立作答' : '这一步完成了') : '卡点记下了，下一步我来调整'}</h1><p>本题记录已用于重新安排任务；单题通过不代表整个考点掌握。你不需要自己判断水平。</p><button class="btn btn-accent" data-action="learning-home">继续，下一步</button></div>`;
     const acc = s.answered ? Math.round((s.correct / s.answered) * 100) : 0;
     return `<div class="practice-shell"><div class="card result-hero">
       <div class="eyebrow">SESSION COMPLETE</div><div class="score">${acc}<small>%</small></div>
@@ -1440,6 +1464,7 @@
       else if (action === "restart-practice") { S.practice = null; render(); }
       else if (action === "start-today") startLearningTask(0);
       else if (action === "save-budget") saveBudget();
+      else if (action === "continue-session") saveBudget(15);
       else if (action === "learning-home") { S.practice = null; S.view = "dashboard"; await load(); }
       else if (action === "practice-help") { if (S.practice) { S.practice.openAnswer = $("#practiceAnswer")?.value || S.practice.openAnswer; S.practice.assisted = true; render(); } }
       else if (action === "start-zero") { document.getElementById("zeroTools")?.scrollIntoView({ behavior: "smooth", block: "start" }); }
