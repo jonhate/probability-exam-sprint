@@ -792,3 +792,12 @@ kbd { font: 600 9px/1 var(--mono); background: #eee7d8; border: 1px solid #d8cfb
 @media (max-width:520px){#sessionBudget{width:100%;margin:8px 0;}}
 .evidence-list>div {display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .evidence-list span {color:var(--muted);font-size:13px}
+.learning-focus {border-color:var(--accent);box-shadow:0 10px 30px rgba(36,52,72,.07);margin-top:18px}
+.learning-focus h1 {margin:10px 0 12px;font-size:clamp(28px,4vw,44px)}
+.learning-lead {font-size:17px;line-height:1.75;color:var(--ink-soft);max-width:760px}
+.learning-focus .btn-lg {margin-top:18px}
+.learning-focus-note {margin:14px 0 0;line-height:1.65}
+.learning-advanced {margin:18px 0;border-top:1px solid var(--line);padding-top:12px}
+.learning-advanced>summary {cursor:pointer;color:var(--muted);font-size:13px;font-weight:600}
+.learning-advanced[open]>summary {margin-bottom:12px}
+@media (max-width:520px){.learning-focus .btn-lg{width:100%;justify-content:center}.learning-focus h1{font-size:30px}.learning-lead{font-size:15px}}
