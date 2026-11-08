@@ -120,6 +120,7 @@
       records.sort((u, v) => (parsedTime(u[1].at)?.getTime() || 0) - (parsedTime(v[1].at)?.getTime() || 0));
       const successes = records.filter(([, x]) => evidenceAttempt(x));
       const distinct = new Set(successes.map(([q]) => q.id));
+      const families = new Set(successes.map(([q]) => String(q.family_id || q.pattern_id || q.id)));
       let retained = false;
       const byQuestion = new Map();
       successes.forEach(([q, attempt]) => {
@@ -131,11 +132,11 @@
         if (times.length >= 2 && times[times.length - 1] - times[0] >= 1800000) retained = true;
       });
       let state = records.length ? "support" : "unseen";
-      if (successes.length) state = retained ? "retained" : distinct.size >= 2 ? "transfer" : "independent";
+      if (successes.length) state = retained ? "retained" : families.size >= 2 ? "transfer" : "independent";
       const [lastQ, last] = records.length ? records[records.length - 1] : [null, {}];
       if (records.length && !evidenceAttempt(last)) state = "support";
-      const labels = { unseen: "待诊断", support: "需要辅助", independent: "独立完成过", transfer: "不同题目通过", retained: "间隔复测通过" };
-      rows.push({ topic_id: topic.id, name: topic.name, state, label: labels[state], independent_questions: distinct.size, question_count: pool.length });
+      const labels = { unseen: "待诊断", support: "需要辅助", independent: "独立完成过", transfer: "不同题族通过", retained: "间隔复测通过" };
+      rows.push({ topic_id: topic.id, name: topic.name, state, label: labels[state], independent_questions: distinct.size, independent_families: families.size, question_count: pool.length });
       if (!pool.length) return;
       const unseen = pool.filter((q) => !(history[q.id]?.attempts || []).length);
       let phase = "diagnose";
