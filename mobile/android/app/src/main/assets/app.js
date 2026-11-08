@@ -307,6 +307,14 @@
     const messages = { session_done: "这一段完成了。先休息；准备好后继续下一段，我会接着安排。", expired: "考试日期已过，请在资料箱更新日期后安排下一轮。", rest: "今天记录的训练已用完预算，先休息。", waiting: "这一项需要间隔复测，稍后回来；到时间我会给你下一步。", short_budget: "现在只剩一点时间。跟我说“继续”，我先给你一个 5 分钟的小任务。", no_questions: "先在资料箱准备可练习的题目。" };
     const task = l.tasks?.[0];
     const more = (l.tasks?.length || 0) > 1 ? `后面还有 ${l.tasks.length - 1} 个候补，做完这一题我会自动重排，不需要你挑。` : "";
+    const emptyAction = {
+      session_done: `<button class="btn btn-accent" data-action="continue-session">开始下一段（15 分钟）</button>`,
+      expired: `<button class="btn btn-accent" data-nav="docs">去更新考试日期</button>`,
+      rest: `<button class="btn" data-nav="study">查看今日速学内容</button>`,
+      waiting: `<button class="btn btn-accent" data-action="refresh-learning">刷新复测时间</button>`,
+      short_budget: `<button class="btn btn-accent" data-action="short-session">用剩余时间开始</button>`,
+      no_questions: `<button class="btn btn-accent" data-nav="docs">去准备题目</button>`,
+    }[l.status] || `<button class="btn btn-accent" data-nav="docs">检查课程设置</button>`;
     const focus = task ? `
       <section class="card card-pad learning-focus">
         <div class="eyebrow">今天由我带你 · 第 1 步 · 约 ${task.minutes} 分钟</div>
@@ -319,7 +327,7 @@
       <section class="card card-pad learning-focus">
         <div class="eyebrow">先等一下</div><h1>${esc(messages[l.status] || "暂时没有任务")}</h1>
         ${l.next_review_at ? `<p>最早复测：${esc(new Date(l.next_review_at).toLocaleString())}</p>` : ""}
-        <div class="hero-actions"><button class="btn btn-accent" data-action="continue-session">继续，给我下一步</button><button class="btn" data-nav="docs">调整考试设置</button><button class="btn" data-nav="study">查看速学</button></div>
+        <div class="hero-actions">${emptyAction}<button class="btn" data-nav="docs">调整考试设置</button></div>
       </section>`;
     return `<div class="page-head"><div><div class="eyebrow">NEXT STEP</div><h1>别想了，跟我做这一步</h1><p>我已经按考点性价比和你的作答记录排好顺序。你只负责做，我负责决定下一步。</p></div></div>
     ${focus}
@@ -345,13 +353,15 @@
       if (!task) { S.view = "dashboard"; render(); return; }
       const q = allQuestions().find(x => x.id === task.question_id);
       if (!q) return;
-      S.practice = { questions: [q], index: 0, selected: [], openAnswer: "", submitted: false, result: null, recorded: false, correct: 0, answered: 0, task, startedAt: Date.now(), assisted: false };
+      const prior = (S.data.progress?.questions?.[q.id]?.attempts || []).slice(-1)[0];
+      const exposed = !!prior && Date.now() - new Date(prior.at).getTime() < 30 * 60 * 1000;
+      S.practice = { questions: [q], index: 0, selected: [], openAnswer: "", submitted: false, result: null, recorded: false, correct: 0, answered: 0, task, startedAt: Date.now(), assisted: false, answerExposed: exposed };
       S.view = "practice"; render();
     } catch (err) { toast(err.message, "error"); }
   }
 
   function attemptEvidence(s, assessment = "objective", partial = false) {
-    return { completed_steps: $$("[data-check-step]:checked").map(el => Number(el.dataset.checkStep)), assisted: !!s.assisted, elapsed_seconds: Math.max(0, (Date.now() - (s.startedAt || Date.now())) / 1000), partial, assessment, error_type: $("#practiceError")?.value || "unknown" };
+    return { completed_steps: $$("[data-check-step]:checked").map(el => Number(el.dataset.checkStep)), assisted: !!s.assisted, answer_exposed: !!s.answerExposed, elapsed_seconds: Math.max(0, (Date.now() - (s.startedAt || Date.now())) / 1000), partial, assessment, error_type: $("#practiceError")?.value || "unknown" };
   }
 
   async function saveBudget(minutes = null) {
@@ -798,7 +808,9 @@
       || (priorities.get(b.topic_id) || 0) - (priorities.get(a.topic_id) || 0)
       || String(lastAttempt(a)?.at || "").localeCompare(String(lastAttempt(b)?.at || "")));
     if (mode !== "all" && mode !== "wrong") qs = qs.slice(0, Number(mode) || 10);
-    S.practice = { questions: qs, index: 0, selected: [], openAnswer: "", submitted: false, result: null, recorded: false, correct: 0, answered: 0, answerDisplay: "", startedAt: Date.now(), assisted: false };
+    const prior = lastAttempt(qs[0]);
+    const exposed = !!prior && Date.now() - new Date(prior.at).getTime() < 30 * 60 * 1000;
+    S.practice = { questions: qs, index: 0, selected: [], openAnswer: "", submitted: false, result: null, recorded: false, correct: 0, answered: 0, answerDisplay: "", startedAt: Date.now(), assisted: false, answerExposed: exposed };
     S.view = "practice";
     render();
   }
@@ -856,7 +868,7 @@
   function nextPractice() {
     const s = S.practice; if (!s) return;
     if (s.index + 1 >= s.questions.length) { s.done = true; render(); return; }
-    s.index += 1; s.selected = []; s.openAnswer = ""; s.submitted = false; s.result = null; s.recorded = false; s.answerDisplay = ""; s.startedAt = Date.now(); s.assisted = false; render();
+    s.index += 1; s.selected = []; s.openAnswer = ""; s.submitted = false; s.result = null; s.recorded = false; s.answerDisplay = ""; s.startedAt = Date.now(); s.assisted = false; s.answerExposed = false; render();
   }
 
   function renderPracticeResult() {
@@ -1465,8 +1477,10 @@
       else if (action === "start-today") startLearningTask(0);
       else if (action === "save-budget") saveBudget();
       else if (action === "continue-session") saveBudget(15);
+      else if (action === "short-session") saveBudget(5);
+      else if (action === "refresh-learning") { S.practice = null; await load(); }
       else if (action === "learning-home") { S.practice = null; S.view = "dashboard"; await load(); }
-      else if (action === "practice-help") { if (S.practice) { S.practice.openAnswer = $("#practiceAnswer")?.value || S.practice.openAnswer; S.practice.assisted = true; render(); } }
+      else if (action === "practice-help") { if (S.practice) { S.practice.openAnswer = $("#practiceAnswer")?.value || S.practice.openAnswer; S.practice.assisted = true; S.practice.answerExposed = true; render(); } }
       else if (action === "start-zero") { document.getElementById("zeroTools")?.scrollIntoView({ behavior: "smooth", block: "start" }); }
       else if (action === "scroll-zero-diag") { document.getElementById("zeroDiag")?.scrollIntoView({ behavior: "smooth", block: "start" }); }
       else if (action === "quick-practice") startPractice("10");
@@ -1542,7 +1556,12 @@
     const errRedo = e.target.closest("[data-error-redo]");
     if (errRedo) {
       const q = allQuestions().find((x) => x.id === errRedo.dataset.errorRedo);
-      if (q) { S.practice = { questions: [q], index: 0, selected: [], openAnswer: "", submitted: false, result: null, recorded: false, correct: 0, answered: 0, answerDisplay: "" }; S.view = "practice"; render(); }
+      if (q) {
+        const prior = (progress().questions?.[q.id]?.attempts || []).slice(-1)[0];
+        const exposed = !!prior && Date.now() - new Date(prior.at).getTime() < 30 * 60 * 1000;
+        S.practice = { questions: [q], index: 0, selected: [], openAnswer: "", submitted: false, result: null, recorded: false, correct: 0, answered: 0, answerDisplay: "", startedAt: Date.now(), assisted: false, answerExposed: exposed };
+        S.view = "practice"; render();
+      }
       return;
     }
     const del = e.target.closest("[data-delete-doc]");
