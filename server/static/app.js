@@ -361,7 +361,7 @@
   }
 
   function attemptEvidence(s, assessment = "objective", partial = false) {
-    return { completed_steps: $$("[data-check-step]:checked").map(el => Number(el.dataset.checkStep)), assisted: !!s.assisted, answer_exposed: !!s.answerExposed, elapsed_seconds: Math.max(0, (Date.now() - (s.startedAt || Date.now())) / 1000), partial, assessment, error_type: $("#practiceError")?.value || "unknown" };
+    return { completed_steps: $$("[data-check-step]:checked").map(el => Number(el.dataset.checkStep)), completed_point_ids: $$("[data-check-step]:checked").map(el => el.dataset.stepId).filter(Boolean), assisted: !!s.assisted, answer_exposed: !!s.answerExposed, elapsed_seconds: Math.max(0, (Date.now() - (s.startedAt || Date.now())) / 1000), partial, assessment, error_type: $("#practiceError")?.value || "unknown" };
   }
 
   async function saveBudget(minutes = null) {
@@ -777,15 +777,19 @@
     }).join("；");
   }
 
-  function rubricSteps(q) { return String(q.rubric || "").split(/[；;\n]+/).map(x => x.trim()).filter(Boolean).slice(0,12); }
+  function rubricSteps(q) {
+    if (Array.isArray(q.rubric_points)) return q.rubric_points.map(p => String(p?.text || p?.label || "").trim()).filter(Boolean).slice(0,12);
+    return String(q.rubric || "").split(/[；;\n]+/).map(x => x.trim()).filter(Boolean).slice(0,12);
+  }
 
   function practiceFeedbackHTML(q, s) {
     const isOpen = ["short", "calculation", "essay"].includes(q.type);
     if (isOpen && s.result === null) {
-      return `<div class="feedback correct"><h4>对照参考答案自评</h4><div class="model-answer">${rich(q.answer || "资料未给出答案")}</div>${q.rubric ? `<p><b>评分点：</b>${esc(q.rubric)}</p>` : ""}<div class="learning-help">${rubricSteps(q).map((step,i) => `<label><input type="checkbox" data-check-step="${i}"> ${esc(step)}</label>`).join("")}</div><label>主要卡点 <select id="practiceError"><option value="unknown">无 / 尚不确定</option value="conditions">适用条件</option><option value="procedure">列式与步骤</option><option value="concept">概念理解</option><option value="calculation">计算</option><option value="reading">审题</option><option value="time">用时过长</option></select></label><div class="self-grade"><span class="small">核对每个评分点后记录：</span><button class="btn btn-sm btn-green" data-self-grade="1">完整完成</button><button class="btn btn-sm" data-self-grade="partial">部分步骤完成</button><button class="btn btn-sm btn-danger" data-self-grade="0">尚未完成</button></div></div>`;
+      const points = Array.isArray(q.rubric_points) ? q.rubric_points : [];
+      return `<div class="feedback correct"><h4>对照参考答案自评</h4><div class="model-answer">${rich(q.answer || "资料未给出答案")}</div>${q.rubric ? `<p><b>评分点：</b>${esc(q.rubric)}</p>` : ""}<div class="learning-help">${rubricSteps(q).map((step,i) => `<label><input type="checkbox" data-check-step="${i}" data-step-id="${esc(points[i]?.id || "")}"> ${esc(step)}</label>`).join("")}</div><label>主要卡点 <select id="practiceError"><option value="unknown">无 / 尚不确定</option value="conditions">适用条件</option><option value="procedure">列式与步骤</option><option value="concept">概念理解</option><option value="calculation">计算</option><option value="reading">审题</option><option value="time">用时过长</option></select></label><div class="self-grade"><span class="small">核对每个评分点后记录：</span><button class="btn btn-sm btn-green" data-self-grade="1">完整完成</button><button class="btn btn-sm" data-self-grade="partial">部分步骤完成</button><button class="btn btn-sm btn-danger" data-self-grade="0">尚未完成</button></div></div>`;
     }
     const good = s.result === true;
-    return `<div class="feedback ${good ? "correct" : "wrong"}"><h4>${good ? "答对了" : "这题要回炉"}</h4>
+    return `<div class="feedback ${good ? "correct" : "wrong"}"><h4>${good ? (s.answerExposed ? "答对了（答案暴露后的纠错）" : "答对了") : "这题要回炉"}</h4>
       <p><b>你的答案：</b>${esc(s.answerDisplay || "（未作答）")}</p>
       <p><b>参考答案：</b>${esc(Array.isArray(q.answer) ? q.answer.join("、") : q.answer)}</p>
       ${q.rubric ? `<p><b>评分点：</b>${esc(q.rubric)}</p>` : ""}
@@ -873,7 +877,15 @@
 
   function renderPracticeResult() {
     const s = S.practice;
-    if (s.task) return `<div class="card card-pad"><div class="eyebrow">TASK RECORDED</div><h1>${s.result ? (s.assisted ? '这一步记下了，下一步检查独立作答' : '这一步完成了') : '卡点记下了，下一步我来调整'}</h1><p>本题记录已用于重新安排任务；单题通过不代表整个考点掌握。你不需要自己判断水平。</p><button class="btn btn-accent" data-action="learning-home">继续，下一步</button></div>`;
+    if (s.task) {
+      const title = s.result
+        ? (s.assisted || s.answerExposed ? '这一步记下了，下一步检查独立作答' : '这一步完成了')
+        : '卡点记下了，下一步我来调整';
+      const note = s.answerExposed
+        ? '这次是看过反馈后的立即纠错，不等同于独立验证；我会改排一道新题或间隔复测。'
+        : '本题记录已用于重新安排任务；单题通过不代表整个考点掌握。你不需要自己判断水平。';
+      return `<div class="card card-pad"><div class="eyebrow">TASK RECORDED</div><h1>${title}</h1><p>${note}</p><button class="btn btn-accent" data-action="learning-home">继续，下一步</button></div>`;
+    }
     const acc = s.answered ? Math.round((s.correct / s.answered) * 100) : 0;
     return `<div class="practice-shell"><div class="card result-hero">
       <div class="eyebrow">SESSION COMPLETE</div><div class="score">${acc}<small>%</small></div>
