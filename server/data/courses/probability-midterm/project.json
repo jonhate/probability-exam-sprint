@@ -1374,7 +1374,8 @@
         "rubric": "选 B 得满分；选其他不得分。",
         "explanation": "互斥意味着 AB=∅、P(AB)=0。因此 P(A−B)=P(A)。由于 P(A)、P(B) 都大于 0，P(AB)=0≠P(A)P(B)，A、D 错。P(A∪B)=P(A)+P(B)>P(A)，C 错。只有 B 正确。",
         "difficulty": 1,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_event_probability"
       },
       {
         "id": "q002",
@@ -1447,7 +1448,8 @@
         "rubric": "选 B 得满分。",
         "explanation": "max≤z 等价于 X≤z 且 Y≤z，所以 F_Z(z)=P(X≤z,Y≤z)。独立时才等于 F_X(z)F_Y(z)；C 是 min 的 CDF。",
         "difficulty": 3,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_max_min"
       },
       {
         "id": "q006",
@@ -1465,7 +1467,8 @@
         "rubric": "选 C 得满分。",
         "explanation": "Cov(aX+b,cY+d)=acCov(X,Y)=2×3×2=12。",
         "difficulty": 2,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_linear_transform"
       },
       {
         "id": "q007",
@@ -1516,7 +1519,8 @@
         "rubric": "P(AB) 1 分；P(A−B) 1 分；公式写对但算错扣 1 分。",
         "explanation": "先加法公式求交，再用差集公式。",
         "difficulty": 1,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_event_probability"
       },
       {
         "id": "q010",
@@ -1614,7 +1618,8 @@
         "rubric": "c 2 分；两个边缘各 2 分；独立判断 2 分；概率 2 分。",
         "explanation": "矩形支持上联合密度能分解，独立；概率直接二重积分。",
         "difficulty": 3,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_joint_density"
       },
       {
         "id": "q016",
@@ -1641,7 +1646,8 @@
         "rubric": "密度与归一 3 分；P(Y>0) 2 分；联合概率 3 分；条件概率 2 分。",
         "explanation": "均匀分布先算面积；条件概率=交事件概率/条件事件概率。",
         "difficulty": 4,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_joint_density"
       },
       {
         "id": "q018",
@@ -1654,7 +1660,8 @@
         "rubric": "Cov 2 分；E 1 分；D 3 分；Cov(Y,Z) 2 分；ρ 2 分。",
         "explanation": "二维正态给的是标准差；线性组合的方差要带交叉项。",
         "difficulty": 4,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_linear_transform"
       },
       {
         "id": "q019",
@@ -1667,7 +1674,8 @@
         "rubric": "卷积式 2 分；两段密度各 3 分；概率 2 分。",
         "explanation": "卷积的关键是让 x 与 z−x 同时落在 (0,1)。",
         "difficulty": 4,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_max_min"
       },
       {
         "id": "q020",
@@ -1680,7 +1688,8 @@
         "rubric": "M 的 CDF/密度各 2 分；N 的 CDF/密度各 2 分；说明支持 1 分。",
         "explanation": "max 用乘积 CDF，min 用补集；独立指数的最小值仍指数且参数相加。",
         "difficulty": 4,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_max_min"
       },
       {
         "id": "q021",
@@ -1693,7 +1702,8 @@
         "rubric": "判断 1 分；三个两两等式 1 分；三交等式 1 分。",
         "explanation": "经典反例：伯恩斯坦正四面体。",
         "difficulty": 2,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_event_probability"
       },
       {
         "id": "q022",
@@ -1735,7 +1745,8 @@
         "explanation": "先由区域面积定常数 3/4；边缘密度分别对另一变量积分；条件密度=联合/边缘；B 是 0≤x²≤y≤1−x²，先求面积再除以 4/3。",
         "difficulty": 4,
         "source": "补充题·二维均匀分布",
-        "estimated_minutes": 15
+        "estimated_minutes": 15,
+        "family_id": "family_joint_density"
       },
       {
         "id": "x02",
@@ -1841,7 +1852,8 @@
         "explanation": "A、B 互斥：A∩B=∅，所以 A−B=A，P(A−B)=P(A)。其余选项不恒成立。",
         "difficulty": 1,
         "source": "模拟试卷1",
-        "estimated_minutes": 2
+        "estimated_minutes": 2,
+        "family_id": "family_event_probability"
       },
       {
         "id": "s1c02",
@@ -1917,7 +1929,8 @@
         "explanation": "D(2X−Y)=4D(X)+D(Y)=4×16+25=89。",
         "difficulty": 2,
         "source": "模拟试卷1",
-        "estimated_minutes": 2
+        "estimated_minutes": 2,
+        "family_id": "family_linear_transform"
       },
       {
         "id": "s1q01",
@@ -1991,7 +2004,8 @@
         "explanation": "归一化 k∫0∞e^(−3x)dx∫0∞e^(−4y)dy=1 得 k=12；边缘相乘等于联合，独立；用卷积公式，注意 Y=(Z−X)/2 的雅可比 1/2。",
         "difficulty": 4,
         "source": "模拟试卷1",
-        "estimated_minutes": 12
+        "estimated_minutes": 12,
+        "family_id": "family_joint_density"
       },
       {
         "id": "s1q06",
@@ -2005,7 +2019,8 @@
         "explanation": "先求 f_Y(y)=y e^(−y)；条件概率=联合区域积分/边缘区域积分。E(XY)=∫0∞∫0^y xy e^(−y) dxdy=1/2∫y³e^(−y)dy=3。",
         "difficulty": 4,
         "source": "模拟试卷1",
-        "estimated_minutes": 12
+        "estimated_minutes": 12,
+        "family_id": "family_joint_density"
       },
       {
         "id": "s2f01",
@@ -2047,7 +2062,8 @@
         "explanation": "P(ĀB̄)=1−P(A)−P(B)+P(AB)；与 P(AB) 相等得 1−P(A)−P(B)=0，所以 P(B)=1−P(A)=0.75。",
         "difficulty": 2,
         "source": "模拟试卷2",
-        "estimated_minutes": 2
+        "estimated_minutes": 2,
+        "family_id": "family_event_probability"
       },
       {
         "id": "s2f04",
@@ -2096,7 +2112,8 @@
         "explanation": "P(A∪B)=P(A)+P(B)−P(AB) 得 P(AB)=0.2；P(A−B)=P(A)−P(AB)=0.2。",
         "difficulty": 1,
         "source": "模拟试卷2",
-        "estimated_minutes": 2
+        "estimated_minutes": 2,
+        "family_id": "family_event_probability"
       },
       {
         "id": "s2c02",
@@ -2172,7 +2189,8 @@
         "explanation": "E(X)=2，E(Y)=3E(X)−2=4。",
         "difficulty": 1,
         "source": "模拟试卷2",
-        "estimated_minutes": 2
+        "estimated_minutes": 2,
+        "family_id": "family_linear_transform"
       },
       {
         "id": "s2q01",
@@ -2213,7 +2231,8 @@
             "text": "P(Ā|B)",
             "score": 5
           }
-        ]
+        ],
+        "family_id": "family_event_probability"
       },
       {
         "id": "s2q03",
@@ -2257,7 +2276,8 @@
         "explanation": "积分区域 0<x<y<1；归一化 A∫0¹∫_x¹ xy dy dx=1 得 A=8；边缘积分；乘积不等于联合；区域 0<x<1/2,x<y<1−x 积分。",
         "difficulty": 4,
         "source": "模拟试卷2",
-        "estimated_minutes": 15
+        "estimated_minutes": 15,
+        "family_id": "family_joint_density"
       },
       {
         "id": "s2q06",
@@ -2271,7 +2291,8 @@
         "explanation": "P(X>x)=P(所有 X_i>x)=e^(−nx)，所以 F_X(x)=1−e^(−nx)，求导得 n e^(−nx)。",
         "difficulty": 3,
         "source": "模拟试卷2",
-        "estimated_minutes": 10
+        "estimated_minutes": 10,
+        "family_id": "family_max_min"
       }
     ],
     "mock": {
@@ -3842,6 +3863,55 @@
         "question_ids": [
           "q008",
           "s1f03"
+        ],
+        "kind": "template"
+      },
+      {
+        "id": "family_event_probability",
+        "name": "事件关系、加法/条件概率模板",
+        "question_ids": [
+          "q001",
+          "q009",
+          "q021",
+          "s1c01",
+          "s2c01",
+          "s2f03",
+          "s2q02"
+        ],
+        "kind": "template"
+      },
+      {
+        "id": "family_joint_density",
+        "name": "二维连续联合密度/边缘/条件模板",
+        "question_ids": [
+          "q015",
+          "q017",
+          "s1q05",
+          "s1q06",
+          "s2q05",
+          "x01"
+        ],
+        "kind": "template"
+      },
+      {
+        "id": "family_max_min",
+        "name": "二维变量函数：和/最大值/最小值",
+        "question_ids": [
+          "q005",
+          "q019",
+          "q020",
+          "s2q06"
+        ],
+        "kind": "template"
+      },
+      {
+        "id": "family_linear_transform",
+        "name": "期望方差协方差的线性变换",
+        "question_ids": [
+          "q006",
+          "q018",
+          "s1c05",
+          "s2c05"
         ],
         "kind": "template"
       }
