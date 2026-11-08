@@ -12,7 +12,7 @@
 
 - 已完成一轮后端/前端可靠性修复并通过 18 个回归测试。
 - 重新生成会归档旧包和旧进度，新包从零计进度。
-- PWA 使用 v4 缓存，课程数据改为 network-first，避免旧题库长期缓存。
+- PWA 使用 v5 缓存，课程数据改为 network-first，避免旧题库长期缓存。
 - 本次已重建 PWA、Render 云端副本和 Android APK。
 
 这个仓库包含：
@@ -74,3 +74,10 @@ GitHub 仓库 → Settings → Pages → Deploy from a branch → `main` / root�
 ## 本地完整版
 
 根目录之外的 `启动概率统计冲刺.bat` 是本机完整版启动器。它使用本地 `data/`，不会因为云服务器休眠丢数据。
+
+
+## 静态版限制
+
+- 静态版保存失败会明确报错并允许重试，不会假装已保存。
+- 静态版也校验题目 ID、评分点范围和自评完整性；但与完整后端仍可能在课程库、上传、模型和复杂状态上有差异。
+- 发布前运行 `python tools/build_static.py --course probability-midterm`，脚本会同步 Android assets 并生成 `release-manifest.json`；`node tests/static_bridge_test.cjs` 验证静态桥接。
