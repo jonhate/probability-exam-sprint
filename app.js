@@ -690,6 +690,7 @@
       const qs = allQuestions();
       const topics = analysis()?.topics || [];
       const wrong = wrongQuestions();
+      const booklet = qs.filter((q) => String(q.source || "").includes("小册子")).length;
       return `<div class="page-head"><div><div class="eyebrow">DRILL / 04</div><h1>刷题</h1><p>一次只做一题，提交后立刻看解析。答错自动进错题本。</p></div></div>
       <div class="two-col">
         <div class="card card-pad">
@@ -700,6 +701,7 @@
             <button class="btn btn-accent btn-lg" data-start-practice="10">${icon("pencil")} 10 题快刷</button>
             <button class="btn btn-lg" data-start-practice="20">20 题混合</button>
             <button class="btn btn-lg" data-start-practice="all">全部题</button>
+            <button class="btn btn-lg" data-start-practice="booklet">${icon("book")} 小册子作业 ${booklet} 题</button>
           </div>
           <p class="muted small" style="margin-top:14px">建议：先做 10 题诊断，正确率低于 60% 就回速学卡；高于 80% 直接进模拟考。</p>
         </div>
@@ -722,7 +724,7 @@
     return `<div class="practice-shell">
       <div class="practice-top"><button class="text-btn" data-action="exit-practice">← 退出</button><span>第 ${s.index + 1} / ${s.questions.length} 题</span><div class="bar"><span style="width:${((s.index) / s.questions.length) * 100}%"></span></div></div>
       <div class="card card-pad">
-        <div class="qmeta"><span class="badge badge-accent">${TYPE_LABEL[q.type] || q.type}</span><span class="badge badge-muted">${esc(q.topic || "综合")}</span><span class="badge badge-gold">难度 ${q.difficulty || 2}/5</span></div>
+        <div class="qmeta"><span class="badge badge-accent">${TYPE_LABEL[q.type] || q.type}</span><span class="badge badge-muted">${esc(q.topic || "综合")}</span><span class="badge badge-gold">难度 ${q.difficulty || 2}/5</span>${q.source ? `<span class="badge">${esc(q.source)}</span>` : ""}</div>
         ${s.task ? `<div class="info-box">${esc(s.task.title)} · 约 ${s.task.minutes} 分钟<br>${esc(s.task.criterion)}</div>` : ''}
         <div class="qstem">${rich(q.stem)}</div>
         ${!s.submitted ? `<div class="learning-help"><button class="btn btn-sm" data-action="practice-help">${s.assisted ? '已使用辅助' : '卡住了：看必要讲解'}</button><label><input type="checkbox" id="practiceAssisted" ${s.assisted ? 'checked' : ''}> 我使用了提示或查阅了资料</label>${s.assisted ? `<div class="info-box">${rich(guide.guide || guide.two_minute || '先列已知条件，确认题目要求，再写第一步。')}<br>${rich(guide.example || guide.worked_example || '')}</div>` : ''}</div>` : ''}
@@ -804,6 +806,7 @@
       if (sel && sel.value !== "all") qs = qs.filter((q) => q.topic_id === sel.value);
     }
     if (mode === "wrong") qs = wrongQuestions().map((x) => x.q);
+    if (mode === "booklet") qs = qs.filter((q) => String(q.source || "").includes("小册子"));
     if (!qs.length) { toast("这个范围暂时没有题", "error"); return; }
     const priorities = new Map((analysis()?.topics || []).map((t) => [t.id, Number(t.priority) || 0]));
     const lastAttempt = (q) => (progress().questions?.[q.id]?.attempts || []).slice(-1)[0];
@@ -811,7 +814,8 @@
     qs = [...qs].sort((a, b) => bucket(a) - bucket(b)
       || (priorities.get(b.topic_id) || 0) - (priorities.get(a.topic_id) || 0)
       || String(lastAttempt(a)?.at || "").localeCompare(String(lastAttempt(b)?.at || "")));
-    if (mode !== "all" && mode !== "wrong") qs = qs.slice(0, Number(mode) || 10);
+    if (mode !== "all" && mode !== "wrong" && mode !== "booklet") qs = qs.slice(0, Number(mode) || 10);
+    if (mode === "booklet") qs = qs.slice(0, 20);
     const prior = lastAttempt(qs[0]);
     const exposed = !!prior && Date.now() - new Date(prior.at).getTime() < 30 * 60 * 1000;
     S.practice = { questions: qs, index: 0, selected: [], openAnswer: "", submitted: false, result: null, recorded: false, correct: 0, answered: 0, answerDisplay: "", startedAt: Date.now(), assisted: false, answerExposed: exposed };
