@@ -69,12 +69,19 @@ def request_scope(fn):
         def run():
             cid = store.active_course_id()
             expected = urllib.parse.unquote(self.headers.get("X-Course-ID", ""))
-            if fn.__name__ == "do_POST" and expected and expected != cid:
+            if fn.__name__ == "do_POST" and path == "/api/progress":
+                if not expected:
+                    return self._error(400, "缺少课程身份，请刷新页面后重试")
+                if expected != cid:
+                    return self._error(409, "课程已在其他窗口切换，请刷新后重试")
+            elif fn.__name__ == "do_POST" and expected and expected != cid:
                 return self._error(409, "课程已在其他窗口切换，请刷新后重试")
             with store.course_scope(cid):
                 if path == "/api/progress":
                     rev = self.headers.get("X-Analysis-Revision", "")
-                    if rev and rev != analysis_revision(store.read("project")):
+                    if not rev:
+                        return self._error(400, "缺少内容版本，请刷新页面后重试")
+                    if rev != analysis_revision(store.read("project")):
                         return self._error(409, "冲刺包已更新，请刷新后再记录进度")
                 blocked = {"/api/upload", "/api/import-inbox", "/api/project", "/api/reset", "/api/doc-kind", "/api/delete-doc"}
                 if fn.__name__ == "do_POST" and path in blocked and _JOB_THREAD and _JOB_THREAD.is_alive():
@@ -570,6 +577,7 @@ def _update_progress(body: dict[str, Any]) -> tuple[int, dict[str, Any]]:
                 "completed_steps": completed_steps,
                 "error_type": body.get("error_type") if body.get("error_type") in learning.ERRORS else "unknown",
                 "evidence_version": 1 if isinstance(body.get("assisted"), bool) else 0,
+                "answer_exposed": body.get("answer_exposed") is True,
                 "assessment": "self" if body.get("assessment") == "self" else "objective",
 
             }
