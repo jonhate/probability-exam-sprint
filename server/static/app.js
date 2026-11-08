@@ -337,7 +337,7 @@
     </details>
     <details class="learning-advanced">
       <summary>我看到的证据（可选查看）</summary>
-      <div class="card card-pad"><p class="small muted">单题通过只代表该题；不同题目通过也不保证考试迁移。旧进度缺少提示信息，需重新验证独立完成。</p><div class="evidence-list">${l.topics.map(t => `<div><b>${esc(t.name)}</b><span>${esc(t.label)} · ${t.independent_questions}/${t.question_count} 道有独立完成记录</span></div>`).join("")}</div></div>
+      <div class="card card-pad"><p class="small muted">单题通过只代表该题；同一题族的重复题不再算作迁移。旧进度缺少提示信息，需重新验证独立完成。</p><div class="evidence-list">${l.topics.map(t => `<div><b>${esc(t.name)}</b><span>${esc(t.label)} · ${t.independent_questions}/${t.question_count} 道独立记录 · ${t.independent_families || 0} 个题族</span></div>`).join("")}</div></div>
     </details>
     <p class="small muted">${esc(l.note)}</p>
     <details class="learning-advanced"><summary>备用入口（不需要现在选）</summary><div class="hero-actions"><button class="btn" data-nav="map">资料与考点</button><button class="btn" data-nav="practice">自由练习</button><button class="btn" data-nav="mock">限时模考</button><button class="btn" data-nav="zero">基础工具</button></div></details>`;
