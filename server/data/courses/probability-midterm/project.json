@@ -1526,7 +1526,24 @@
         "rubric": "E(X) 1 分；D(X) 1 分；P(X=0) 1 分。",
         "explanation": "二项分布 E=np、D=np(1−p)，P(X=0)=(1−p)^n。",
         "difficulty": 2,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "rubric_points": [
+          {
+            "id": "q010-e",
+            "text": "E(X)",
+            "score": 1
+          },
+          {
+            "id": "q010-d",
+            "text": "D(X)",
+            "score": 1
+          },
+          {
+            "id": "q010-p0",
+            "text": "P(X=0)",
+            "score": 1
+          }
+        ]
       },
       {
         "id": "q011",
@@ -2165,7 +2182,19 @@
         "explanation": "P(AB̄)=0.25×0.4=0.1，故 P(AB)=0.4−0.1=0.3；P(A∪B)=0.4+0.6−0.3=0.7；P(Ā|B)=1−P(A|B)=1−0.3/0.6=0.5。",
         "difficulty": 2,
         "source": "模拟试卷2",
-        "estimated_minutes": 8
+        "estimated_minutes": 8,
+        "rubric_points": [
+          {
+            "id": "s2q02-union",
+            "text": "P(A∪B)",
+            "score": 5
+          },
+          {
+            "id": "s2q02-cond",
+            "text": "P(Ā|B)",
+            "score": 5
+          }
+        ]
       },
       {
         "id": "s2q03",
