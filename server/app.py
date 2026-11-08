@@ -563,6 +563,11 @@ def _update_progress(body: dict[str, Any]) -> tuple[int, dict[str, Any]]:
         if not isinstance(raw_steps, list):
             return 400, {"ok": False, "error": "评分点记录格式错误"}
         completed_steps = sorted({i for i in raw_steps if type(i) is int and 0 <= i < len(learning.checkpoints(q))})
+        valid_point_ids = {str(p.get('id')) for p in (q.get('rubric_points') or [])
+                           if isinstance(p, dict) and p.get('id')}
+        raw_point_ids = body.get("completed_point_ids")
+        completed_point_ids = ([str(x)[:80] for x in raw_point_ids if str(x) in valid_point_ids]
+                               if isinstance(raw_point_ids, list) else [])
         if body.get("assessment") == "self" and body.get("correct") and len(completed_steps) < len(learning.checkpoints(q)):
             return 400, {"ok": False, "error": "请逐项核对评分点；未全部完成可记录为部分完成"}
         st = p.setdefault("questions", {}).setdefault(qid, {"attempts": []})
@@ -575,6 +580,7 @@ def _update_progress(body: dict[str, Any]) -> tuple[int, dict[str, Any]]:
                 "elapsed_seconds": max(0, min(7200, learning.number(body.get("elapsed_seconds")))),
                 "partial": body.get("partial") is True,
                 "completed_steps": completed_steps,
+                "completed_point_ids": completed_point_ids,
                 "error_type": body.get("error_type") if body.get("error_type") in learning.ERRORS else "unknown",
                 "evidence_version": 1 if isinstance(body.get("assisted"), bool) else 0,
                 "answer_exposed": body.get("answer_exposed") is True,
