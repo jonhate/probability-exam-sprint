@@ -5,12 +5,19 @@
   const BASE = window.__EXAMSPRINT_DATA__;
   if (!BASE) throw new Error("data.js missing");
   const KEY = "examsprint.static.progress.v1";
+  const CONTENT_REV = String(BASE.analysis_revision || "legacy");
   const NOW = () => new Date().toISOString();
   const clone = (x) => JSON.parse(JSON.stringify(x));
 
   let progress;
   try { progress = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (_) { progress = null; }
   if (!progress || typeof progress !== "object") progress = clone(BASE.progress || {});
+  // A changed course pack must not silently inherit old question evidence.
+  if (progress.meta && progress.meta.analysis_revision && progress.meta.analysis_revision !== CONTENT_REV) {
+    try { localStorage.setItem(`${KEY}.archive.${progress.meta.analysis_revision}`, JSON.stringify(progress)); } catch (_) {}
+    progress = clone(BASE.progress || {});
+  }
+  progress.meta = { course_id: "static", analysis_revision: CONTENT_REV };
   progress.cards = progress.cards || {};
   progress.questions = progress.questions || {};
   progress.mock = progress.mock || { attempts: [] };
@@ -23,7 +30,16 @@
   } catch (_) {}
 
   function save() {
-    try { localStorage.setItem(KEY, JSON.stringify(progress)); } catch (_) {}
+    // Let storage failures reach the route so the UI never claims a record was saved.
+    localStorage.setItem(KEY, JSON.stringify(progress));
+  }
+
+  function storageError() {
+    return json({
+      ok: false,
+      code: "STORAGE_WRITE_FAILED",
+      error: "本地存储写入失败，记录尚未保存。请清理浏览器空间后重试。",
+    }, 507);
   }
 
   function dueNow(st) {
@@ -52,7 +68,8 @@
     return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
   }
   function evidenceAttempt(x) {
-    return x?.correct === true && x?.assisted === false && x?.evidence_version === 1 && !x?.partial;
+    return x?.correct === true && x?.assisted === false && x?.evidence_version === 1
+      && !x?.partial && !x?.answer_exposed;
   }
   function buildLearning(now = new Date()) {
     const a = BASE.project.analysis || {};
@@ -91,12 +108,15 @@
       const successes = records.filter(([, x]) => evidenceAttempt(x));
       const distinct = new Set(successes.map(([q]) => q.id));
       let retained = false;
-      for (let i = 0; i < successes.length; i += 1) {
-        for (let j = i + 1; j < successes.length; j += 1) {
-          const x = parsedTime(successes[i][1].at), y = parsedTime(successes[j][1].at);
-          if (x && y && y - x >= 1800000) retained = true;
-        }
-      }
+      const byQuestion = new Map();
+      successes.forEach(([q, attempt]) => {
+        if (!byQuestion.has(q.id)) byQuestion.set(q.id, []);
+        byQuestion.get(q.id).push(attempt);
+      });
+      byQuestion.forEach((attempts) => {
+        const times = attempts.map((x) => parsedTime(x.at)).filter(Boolean).sort((a, b) => a - b);
+        if (times.length >= 2 && times[times.length - 1] - times[0] >= 1800000) retained = true;
+      });
       let state = records.length ? "support" : "unseen";
       if (successes.length) state = retained ? "retained" : distinct.size >= 2 ? "transfer" : "independent";
       const [lastQ, last] = records.length ? records[records.length - 1] : [null, {}];
@@ -172,6 +192,7 @@
       status, tasks: plan, topics: rows, session_minutes: session, session_remaining: sessionRemaining,
       daily_remaining: remaining, tracked_minutes: Math.round(spent), days_left: days,
       next_review_at: waiting.length ? waiting.sort()[0] : null,
+      evidence_rule_version: 2,
       independent_topics: rows.filter((r) => ["independent", "transfer", "retained"].includes(r.state)).length,
       note: "排序综合资料重点、作答证据和预计用时；不是提分预测。主观题按评分点自评。",
     };
@@ -236,6 +257,7 @@
       progress,
       courses: [{ id: "static", name: BASE.project.course || "我的课程", status: BASE.project.status || "ready", docs: (BASE.project.docs || []).length, has_analysis: true, active: true }],
       active_course_id: "static",
+      analysis_revision: CONTENT_REV,
       insights: insights(),
       server: { time: new Date().toISOString(), version: "static-1.0", active_job: false },
     };
@@ -272,6 +294,10 @@
     if (path.endsWith("/api/project")) {
       let body = {};
       try { body = JSON.parse(init?.body || "{}"); } catch (_) {}
+      const beforeProject = {
+        course: BASE.project.course, exam_date: BASE.project.exam_date,
+        days: BASE.project.days, hours_per_day: BASE.project.hours_per_day,
+      };
       if (body.course !== undefined) BASE.project.course = String(body.course).slice(0, 80);
       if (body.exam_date !== undefined) BASE.project.exam_date = String(body.exam_date).slice(0, 10);
       if (body.days !== undefined) BASE.project.days = Math.max(1, Math.min(14, Number(body.days) || 3));
@@ -281,12 +307,16 @@
           course: BASE.project.course, exam_date: BASE.project.exam_date,
           days: BASE.project.days, hours_per_day: BASE.project.hours_per_day,
         }));
-      } catch (_) {}
+      } catch (_) {
+        Object.assign(BASE.project, beforeProject);
+        return storageError();
+      }
       return json({ ok: true, project: BASE.project });
     }
     if (path.endsWith("/api/progress")) {
       let body = {};
       try { body = JSON.parse(init?.body || "{}"); } catch (_) {}
+      const beforeProgress = clone(progress);
       const type = body.type;
       if (type === "preferences") {
         const session = Number(body.session_minutes);
@@ -302,10 +332,20 @@
         else if (rating === "easy") { st.mastery = Math.min(100, (Number(st.mastery) || 0) + 20); st.correct = (Number(st.correct) || 0) + 1; st.due = new Date(Date.now() + 4 * 86400000).toISOString(); }
         else { st.mastery = Math.min(100, (Number(st.mastery) || 0) + 12); st.correct = (Number(st.correct) || 0) + 1; st.due = new Date(Date.now() + 2 * 86400000).toISOString(); }
       } else if (type === "question") {
-        const st = progress.questions[body.id] || (progress.questions[body.id] = { attempts: [] });
+        const qid = String(body.id || "");
+        const q = (BASE.project.analysis?.questions || []).find((item) => item.id === qid);
+        if (!qid) return json({ ok: false, error: "缺少题目 id" }, 400);
+        if (!q) return json({ ok: false, error: "题目不存在，请刷新冲刺包" }, 404);
+        if (body.completed_steps !== undefined && !Array.isArray(body.completed_steps)) {
+          return json({ ok: false, error: "评分点记录格式错误" }, 400);
+        }
         const steps = Array.isArray(body.completed_steps)
-          ? [...new Set(body.completed_steps.filter((i) => Number.isInteger(i) && i >= 0))].sort((a, b) => a - b)
+          ? [...new Set(body.completed_steps.filter((i) => Number.isInteger(i) && i >= 0 && i < checkpoints(q).length))].sort((a, b) => a - b)
           : [];
+        if (body.assessment === "self" && body.correct && steps.length < checkpoints(q).length) {
+          return json({ ok: false, error: "请逐项核对评分点；未全部完成可记录为部分完成" }, 400);
+        }
+        const st = progress.questions[qid] || (progress.questions[qid] = { attempts: [] });
         const attempt = {
           at: NOW(), correct: !!body.correct, answer: String(body.answer || "").slice(0, 2000),
           assisted: typeof body.assisted === "boolean" ? body.assisted : null,
@@ -313,6 +353,7 @@
           partial: body.partial === true, completed_steps: steps,
           error_type: body.error_type || "unknown",
           evidence_version: typeof body.assisted === "boolean" ? 1 : 0,
+          answer_exposed: body.answer_exposed === true,
           assessment: body.assessment === "self" ? "self" : "objective",
         };
         st.attempts = (st.attempts || []).concat(attempt).slice(-30);
@@ -321,7 +362,12 @@
       } else if (type === "plan") {
         progress.plan[body.block_id || body.id] = !!body.done;
       } else return json({ ok: false, error: "未知进度类型" }, 400);
-      save();
+      try {
+        save();
+      } catch (_) {
+        progress = beforeProgress;
+        return storageError();
+      }
       return json({ ok: true, progress, insights: insights() });
     }
     if (path.endsWith("/api/ask")) {
