@@ -186,7 +186,8 @@
         error_type: last.error_type || "unknown",
       };
       const need = { diagnose: 1.2, repair: 1.35, transfer: 1.1, retest: 0.8 }[phase];
-      const score = (20 + Math.max(0, Math.min(100, numberValue(topic.priority)))) * need / Math.sqrt(duration);
+      const homeworkWeight = Math.max(0.5, Math.min(2, numberValue(topic.homework_weight, 1)));
+      const score = (20 + Math.max(0, Math.min(100, numberValue(topic.priority)))) * need * homeworkWeight / Math.sqrt(duration);
       candidates.push([score, task]);
     });
     candidates.sort((a, b) => b[0] - a[0]);
