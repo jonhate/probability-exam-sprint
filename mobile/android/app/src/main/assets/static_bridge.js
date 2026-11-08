@@ -12,15 +12,22 @@
   let progress;
   try { progress = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (_) { progress = null; }
   if (!progress || typeof progress !== "object") progress = clone(BASE.progress || {});
+  const hadVersionMeta = !!(progress.meta && progress.meta.analysis_revision);
   // A changed course pack must not silently inherit old question evidence.
   if (progress.meta && progress.meta.analysis_revision && progress.meta.analysis_revision !== CONTENT_REV) {
     try { localStorage.setItem(`${KEY}.archive.${progress.meta.analysis_revision}`, JSON.stringify(progress)); } catch (_) {}
     progress = clone(BASE.progress || {});
   }
-  progress.meta = { course_id: "static", analysis_revision: CONTENT_REV };
   progress.cards = progress.cards || {};
   progress.questions = progress.questions || {};
   progress.mock = progress.mock || { attempts: [] };
+  const legacyProgress = !hadVersionMeta && Object.values(progress.questions).some((row) => (row?.attempts || []).length);
+  progress.meta = { course_id: "static", analysis_revision: CONTENT_REV, legacy: legacyProgress };
+  if (legacyProgress) {
+    Object.values(progress.questions).forEach((row) => {
+      (row?.attempts || []).forEach((attempt) => { attempt.legacy = true; });
+    });
+  }
   progress.plan = progress.plan || {};
   progress.preferences = progress.preferences || {};
   const PROJECT_KEY = "examsprint.static.project.v1";
@@ -53,6 +60,12 @@
     return Number.isFinite(n) ? n : fallback;
   }
   function checkpoints(q) {
+    if (Array.isArray(q?.rubric_points)) {
+      return q.rubric_points
+        .filter((p) => p && typeof p === "object")
+        .map((p) => String(p.text || p.label || "").trim())
+        .filter(Boolean).slice(0, 12);
+    }
     return String(q?.rubric || "").split(/[；;\n]+/).map((s) => s.trim()).filter(Boolean).slice(0, 12);
   }
   function questionMinutes(q) {
@@ -69,7 +82,7 @@
   }
   function evidenceAttempt(x) {
     return x?.correct === true && x?.assisted === false && x?.evidence_version === 1
-      && !x?.partial && !x?.answer_exposed;
+      && !x?.partial && !x?.answer_exposed && !x?.legacy;
   }
   function buildLearning(now = new Date()) {
     const a = BASE.project.analysis || {};
@@ -258,6 +271,7 @@
       courses: [{ id: "static", name: BASE.project.course || "我的课程", status: BASE.project.status || "ready", docs: (BASE.project.docs || []).length, has_analysis: true, active: true }],
       active_course_id: "static",
       analysis_revision: CONTENT_REV,
+      legacy_progress: !!progress.meta.legacy,
       insights: insights(),
       server: { time: new Date().toISOString(), version: "static-1.0", active_job: false },
     };
@@ -342,6 +356,10 @@
         const steps = Array.isArray(body.completed_steps)
           ? [...new Set(body.completed_steps.filter((i) => Number.isInteger(i) && i >= 0 && i < checkpoints(q).length))].sort((a, b) => a - b)
           : [];
+        const validPointIds = new Set((q.rubric_points || []).map((p) => p?.id).filter(Boolean).map(String));
+        const pointIds = Array.isArray(body.completed_point_ids)
+          ? body.completed_point_ids.map(String).filter((id) => validPointIds.has(id)).slice(0, 12)
+          : [];
         if (body.assessment === "self" && body.correct && steps.length < checkpoints(q).length) {
           return json({ ok: false, error: "请逐项核对评分点；未全部完成可记录为部分完成" }, 400);
         }
@@ -351,6 +369,7 @@
           assisted: typeof body.assisted === "boolean" ? body.assisted : null,
           elapsed_seconds: Math.max(0, Math.min(7200, Number(body.elapsed_seconds) || 0)),
           partial: body.partial === true, completed_steps: steps,
+          completed_point_ids: pointIds,
           error_type: body.error_type || "unknown",
           evidence_version: typeof body.assisted === "boolean" ? 1 : 0,
           answer_exposed: body.answer_exposed === true,
