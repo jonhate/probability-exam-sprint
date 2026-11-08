@@ -1410,7 +1410,8 @@
         "rubric": "选 A 得满分。",
         "explanation": "正态分布关于 μ=2 对称。P(0<X<2)=P(2<X<4)=0.3，所以 P(X<0)=0.5−0.3=0.2。",
         "difficulty": 2,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_normal_symmetry"
       },
       {
         "id": "q004",
@@ -1482,7 +1483,8 @@
         "rubric": "选 B 得满分。",
         "explanation": "P(A)=0.3×0.2+0.7×0.1=0.13；P(B₁|A)=0.06/0.13=6/13。",
         "difficulty": 2,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_bayes_posterior"
       },
       {
         "id": "q008",
@@ -1500,7 +1502,8 @@
         "rubric": "选 A 得满分。",
         "explanation": "指数分布无记忆性：已知已经使用了 s，剩余寿命仍服从同一指数分布，所以条件概率等于 P(X>t)=e^(−λt)。",
         "difficulty": 2,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_exponential_memoryless"
       },
       {
         "id": "q009",
@@ -1556,7 +1559,8 @@
         "rubric": "写出对称性 1 分，结果 1 分。",
         "explanation": "不要标准化求 σ；直接用正态曲线关于均值对称。",
         "difficulty": 2,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_normal_symmetry"
       },
       {
         "id": "q012",
@@ -1582,7 +1586,8 @@
         "rubric": "事件定义 1 分；全概率式 3 分；结果 2 分；贝叶斯式 2 分；结果 2 分。",
         "explanation": "标准全概率+贝叶斯；两问共用分母 0.029。",
         "difficulty": 2,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_bayes_posterior"
       },
       {
         "id": "q014",
@@ -1595,7 +1600,8 @@
         "rubric": "c 2 分；F 4 分；区间概率 2 分；Y 密度 4 分。",
         "explanation": "归一化、分段积分、F 相减、单调变换公式。",
         "difficulty": 3,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_linear_density"
       },
       {
         "id": "q015",
@@ -1621,7 +1627,8 @@
         "rubric": "独立性方程 3 分；α、β 各 1 分；Z 分布 2 分；E(XY) 3 分。",
         "explanation": "本题关键是正确翻译事件 {X=0} 与 {X=Y} 的交事件。",
         "difficulty": 4,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_discrete_joint"
       },
       {
         "id": "q017",
@@ -1699,7 +1706,8 @@
         "rubric": "分段 CDF 3 分；求导 3 分；支持与最终密度 2 分。",
         "explanation": "X² 非单调，必须把正负两支都算进去。",
         "difficulty": 4,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_one_dimensional_transform"
       },
       {
         "id": "q023",
@@ -1712,7 +1720,8 @@
         "rubric": "两个边缘各 1 分；E、D 各 1 分；E(XY) 2 分；Cov 2 分。",
         "explanation": "这张表实际独立，所以 Cov=0；但仍要按定义算，不能只凭“看起来独立”。",
         "difficulty": 3,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_discrete_joint"
       },
       {
         "id": "x01",
@@ -1740,7 +1749,8 @@
         "explanation": "XY≠0 只可能是 X=1,Y=−1，所以该格为 1/4；用 X、Y 的边缘概率补齐其余三格。X+Y 取值 −1,0,1。",
         "difficulty": 3,
         "source": "补充题·离散联合分布",
-        "estimated_minutes": 10
+        "estimated_minutes": 10,
+        "family_id": "family_discrete_joint"
       },
       {
         "id": "s1f01",
@@ -1782,7 +1792,8 @@
         "explanation": "指数分布无记忆性：P(Y≤a+1|Y>a)=P(Y≤1)=1−e⁻¹。",
         "difficulty": 2,
         "source": "模拟试卷1",
-        "estimated_minutes": 2
+        "estimated_minutes": 2,
+        "family_id": "family_exponential_memoryless"
       },
       {
         "id": "s1f04",
@@ -1810,7 +1821,8 @@
         "explanation": "正态分布关于均值 2 对称，P(−1≤X≤2)=P(2≤X≤5)=0.3；故 P(X≤−1)=0.5−0.3=0.2。",
         "difficulty": 2,
         "source": "模拟试卷1",
-        "estimated_minutes": 2
+        "estimated_minutes": 2,
+        "family_id": "family_normal_symmetry"
       },
       {
         "id": "s1c01",
@@ -1919,7 +1931,8 @@
         "explanation": "用全概率公式：P(D)=0.25×0.05+0.35×0.04+0.40×0.02。再用贝叶斯公式逐项除以 0.0345。",
         "difficulty": 2,
         "source": "模拟试卷1",
-        "estimated_minutes": 8
+        "estimated_minutes": 8,
+        "family_id": "family_bayes_posterior"
       },
       {
         "id": "s1q02",
@@ -1933,7 +1946,8 @@
         "explanation": "由 ∫0¹ cx dx=1 得 c=2；F(x)=∫0^x 2t dt=x²；区间概率=F(0.7)−F(0.3)=0.49−0.09。",
         "difficulty": 2,
         "source": "模拟试卷1",
-        "estimated_minutes": 8
+        "estimated_minutes": 8,
+        "family_id": "family_linear_density"
       },
       {
         "id": "s1q03",
@@ -1947,7 +1961,8 @@
         "explanation": "F_Z(z)=∫0^√z 2x³e^(−x²)dx，换元 u=x² 得 1−(z+1)e^(−z)，求导得 z e^(−z)；E(Z)=∫0∞ z²e^(−z)dz=2。",
         "difficulty": 3,
         "source": "模拟试卷1",
-        "estimated_minutes": 10
+        "estimated_minutes": 10,
+        "family_id": "family_one_dimensional_transform"
       },
       {
         "id": "s1q04",
@@ -1961,7 +1976,8 @@
         "explanation": "由独立性先求 X 的边缘：P(X=1)=1/3，P(X=2)=1/4，P(X=3)=5/12；再用 P(X=i,Y=2)=P(X=i)P(Y=2) 求 a,b。E(X)=25/12，E(X²)=61/12，方差=107/144。",
         "difficulty": 3,
         "source": "模拟试卷1",
-        "estimated_minutes": 10
+        "estimated_minutes": 10,
+        "family_id": "family_discrete_joint"
       },
       {
         "id": "s1q05",
@@ -2045,7 +2061,8 @@
         "explanation": "X 的边缘分布关于均值 1 对称，P(1<X<2)=P(0<X<1)=0.3；故 P(X<0)=0.5−0.3=0.2。",
         "difficulty": 2,
         "source": "模拟试卷2",
-        "estimated_minutes": 2
+        "estimated_minutes": 2,
+        "family_id": "family_normal_symmetry"
       },
       {
         "id": "s2f05",
@@ -2059,7 +2076,8 @@
         "explanation": "E(Y)=E(X²)=∫0¹ x² dx=1/3。",
         "difficulty": 1,
         "source": "模拟试卷2",
-        "estimated_minutes": 2
+        "estimated_minutes": 2,
+        "family_id": "family_one_dimensional_transform"
       },
       {
         "id": "s2c01",
@@ -2168,7 +2186,8 @@
         "explanation": "全概率：P(中)=4/6×0.9+2/6×0.4；贝叶斯：P(未校正|未中)= (2/6×0.6)/(1−11/15)=0.2/(4/15)=3/4。",
         "difficulty": 2,
         "source": "模拟试卷2",
-        "estimated_minutes": 8
+        "estimated_minutes": 8,
+        "family_id": "family_bayes_posterior"
       },
       {
         "id": "s2q02",
@@ -2208,7 +2227,8 @@
         "explanation": "归一化 ab²/2=1，E=ab³/3=5/3，联立得 b=5/2,a=8/25；积分得 F；变量变换 f_Y(y)=f_X((y+1)/2)/2。",
         "difficulty": 3,
         "source": "模拟试卷2",
-        "estimated_minutes": 12
+        "estimated_minutes": 12,
+        "family_id": "family_linear_density"
       },
       {
         "id": "s2q04",
@@ -2222,7 +2242,8 @@
         "explanation": "由分布函数得 X 取 1,2 概率 .4,.6；Y 取 0,1 概率 .3,.7；条件得 P(1,0)=.2，再补表；合并 X+Y 的同值格。",
         "difficulty": 3,
         "source": "模拟试卷2",
-        "estimated_minutes": 12
+        "estimated_minutes": 12,
+        "family_id": "family_discrete_joint"
       },
       {
         "id": "s2q05",
@@ -3759,7 +3780,72 @@
           ]
         }
       ]
-    }
+    },
+    "question_families": [
+      {
+        "id": "family_linear_density",
+        "name": "一维连续型：线性密度+分布函数+区间概率",
+        "question_ids": [
+          "q014",
+          "s1q02",
+          "s2q03"
+        ],
+        "kind": "template"
+      },
+      {
+        "id": "family_normal_symmetry",
+        "name": "正态分布对称性模板",
+        "question_ids": [
+          "q003",
+          "q011",
+          "s1f05",
+          "s2f04"
+        ],
+        "kind": "template"
+      },
+      {
+        "id": "family_bayes_posterior",
+        "name": "全概率/贝叶斯后验模板",
+        "question_ids": [
+          "q007",
+          "q013",
+          "s1q01",
+          "s2q01"
+        ],
+        "kind": "template"
+      },
+      {
+        "id": "family_discrete_joint",
+        "name": "二维离散联合分布/独立性/函数分布",
+        "question_ids": [
+          "q016",
+          "q023",
+          "s1q04",
+          "s2q04",
+          "x02"
+        ],
+        "kind": "template"
+      },
+      {
+        "id": "family_one_dimensional_transform",
+        "name": "一维随机变量函数/平方变换",
+        "question_ids": [
+          "q022",
+          "s1q03",
+          "s2f05"
+        ],
+        "kind": "template"
+      },
+      {
+        "id": "family_exponential_memoryless",
+        "name": "指数分布无记忆性",
+        "question_ids": [
+          "q008",
+          "s1f03"
+        ],
+        "kind": "template"
+      }
+    ]
   },
   "job": null,
   "stale": false,
