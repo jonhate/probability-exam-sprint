@@ -12,7 +12,7 @@
 - **R06/R07 校验与防错**：静态桥补题目/评分点校验；后端进度写入强制课程与内容版本头。
 - **R08 空状态**：过期、会话完成、每日休息、等待、短预算、无题各有独立动作。
 - **R09 题干**：q007 改为精确 `6/13`；q008 补 `s,t≥0`。
-- **R10 评分点/题族**：q010/s2q02 增加 `rubric_points` 和 `completed_point_ids`；新增 `analysis.question_families`，21 道题标注 6 个题族，`transfer` 只按不同题族计数。
+- **R10 评分点/题族**：q010/s2q02 增加 `rubric_points` 和 `completed_point_ids`；新增 `analysis.question_families`，42 道题标注 10 个题族，`transfer` 只按不同题族计数。
 - **R11 文档**：57 题、PWA v5、静态限制、Android 构建说明已更新。
 
 ## 验证结果
