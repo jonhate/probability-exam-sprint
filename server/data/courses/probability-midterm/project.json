@@ -146,7 +146,7 @@
     }
   ],
   "analysis": {
-    "version": 5,
+    "version": 6,
     "course": "概率统计（期中冲刺）",
     "exam_date": "2026-11-04",
     "days": 3,
@@ -2446,6 +2446,100 @@
         "difficulty": 2,
         "source": "小册子作业·第2章",
         "estimated_minutes": 2
+      },
+      {
+        "id": "hb10",
+        "topic_id": "t08",
+        "topic": "事件关系与概率加法公式",
+        "type": "short",
+        "stem": "设 P(A)=0.6，P(B)=0.7。问：P(AB) 在什么条件下取最大值、最大值是多少？在什么条件下取最小值、最小值是多少？",
+        "options": [],
+        "answer": "最大值在 A⊂B 时取得，为 0.6；最小值在 P(A∪B)=1 时取得，为 0.3。",
+        "rubric": "最大值及条件 2 分；最小值及条件 2 分。",
+        "explanation": "P(AB)≤min(P(A),P(B))=0.6，A⊂B 时取到；又 P(AB)=P(A)+P(B)−P(A∪B)≥0.6+0.7−1=0.3，P(A∪B)=1 时取到。",
+        "difficulty": 2,
+        "source": "小册子作业·第1章",
+        "estimated_minutes": 4
+      },
+      {
+        "id": "hb11",
+        "topic_id": "t11",
+        "topic": "二维随机变量函数的分布：和、max、min",
+        "type": "short",
+        "stem": "设 X、Y 相互独立，且都服从 U(0,3)。求 P(max(X,Y)≤1)。",
+        "options": [],
+        "answer": "1/9",
+        "rubric": "拆成两个独立事件；每个概率 1/3；相乘得 1/9。",
+        "explanation": "max(X,Y)≤1 等价于 X≤1 且 Y≤1，故概率=(1/3)(1/3)=1/9。",
+        "difficulty": 1,
+        "source": "小册子作业·第3章",
+        "estimated_minutes": 2
+      },
+      {
+        "id": "hb12",
+        "topic_id": "t07",
+        "topic": "常见分布与正态标准化",
+        "type": "single",
+        "stem": "设 X、Y 相互独立，X~P(3)，Y~P(2)，则 P(X+Y=0)=（ ）。",
+        "options": [
+          "A. e⁻⁵",
+          "B. e⁻³",
+          "C. e⁻²",
+          "D. e⁻¹"
+        ],
+        "answer": "A",
+        "rubric": "选 A 得 3 分。",
+        "explanation": "X+Y~P(5)，所以 P(X+Y=0)=e⁻⁵。",
+        "difficulty": 1,
+        "source": "小册子作业·第3章",
+        "estimated_minutes": 2
+      },
+      {
+        "id": "hb13",
+        "topic_id": "t05",
+        "topic": "期望、方差、协方差与相关系数",
+        "type": "short",
+        "stem": "设随机变量 X、Y 满足 2X+3Y=6，且 X 不是常数，求 X 与 Y 的相关系数 ρ_XY。",
+        "options": [],
+        "answer": "−1",
+        "rubric": "说明 Y 是 X 的负斜率线性函数；相关系数 −1。",
+        "explanation": "Y=(6−2X)/3，Y 与 X 是完全负线性关系，所以 ρ_XY=−1。",
+        "difficulty": 1,
+        "source": "小册子作业·第4章",
+        "estimated_minutes": 2
+      },
+      {
+        "id": "hb14",
+        "topic_id": "t02",
+        "topic": "一维连续型：密度、分布函数、区间概率",
+        "type": "short",
+        "stem": "设随机变量 X 的分布函数为 F(x)。用 F 表示：(1) P(X≤a)；(2) P(X=a)；(3) P(X>a)；(4) P(x₁<X≤x₂)。",
+        "options": [],
+        "answer": "F(a)；F(a)−F(a−)；1−F(a)；F(x₂)−F(x₁)。",
+        "rubric": "四个表达式各 1 分；注意左端点。",
+        "explanation": "分布函数是右连续；单点概率用左右极限差，区间概率用右端点减左端点。",
+        "difficulty": 2,
+        "source": "小册子作业·第2章",
+        "estimated_minutes": 3
+      },
+      {
+        "id": "hb15",
+        "topic_id": "t07",
+        "topic": "常见分布与正态标准化",
+        "type": "single",
+        "stem": "设 X~N(0,1)，Y=3X−2，则 Y 的分布为（ ）。",
+        "options": [
+          "A. N(0,1)",
+          "B. N(−2,9)",
+          "C. N(−2,3)",
+          "D. N(2,9)"
+        ],
+        "answer": "B",
+        "rubric": "选 B 得 3 分。",
+        "explanation": "E(Y)=−2，D(Y)=9，所以 Y~N(−2,9)。",
+        "difficulty": 1,
+        "source": "小册子作业·第4章",
+        "estimated_minutes": 2
       }
     ],
     "mock": {
@@ -4074,7 +4168,7 @@
       "name": "概率统计小册子（高清）.pdf",
       "pages": 38,
       "included": true,
-      "question_count": 9,
+      "question_count": 15,
       "note": "从38页作业集抽取9道代表题加入练习；OCR全文在 corpus.d_booklet，公式需人工校对。"
     }
   },
