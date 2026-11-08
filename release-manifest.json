@@ -3,12 +3,12 @@
   "course_id": "probability-midterm",
   "analysis_version": 3,
   "questions": 57,
-  "analysis_revision": "58c2d5d430bcfcdc11cb",
+  "analysis_revision": "2c8b64e6164528a8931c",
   "assets": {
     "index.html": "25ed8d901a70a3d538cac61368f8b61f8442faa75ad727105edd6665925f6e2a",
-    "app.js": "3da8cd18c15c2530a9e8c2a1212d321bb7b4560227cb5351b97f9a31e46b7fce",
-    "data.js": "90290fe1a3caa90229443c5a8909d455c275bc3cd4e5ca050251ea0fac3e740b",
-    "static_bridge.js": "4e729a9d0f8453065f8bb065758f64eed87ca6d5eca312ceae486f7f3eab8363",
+    "app.js": "fe87e4a1371f4f45cb200c5790efbe487e27aaa547ca9ca4e2852c73806db670",
+    "data.js": "1edf731a69d4d963323c4ebb293fce36dd57997043071f6da6e90a78c1764451",
+    "static_bridge.js": "b46ca8c68bf928043562da189cbcc7e9295a8e4f0d78d1f933adc0c4e64161e7",
     "styles.css": "bfedeebf27cb41ccf59d580ec9424b373a11a9934ebf7ec53a7f89e3864cdb00",
     "manifest.webmanifest": "702a78a8c16e1e84865eac95ce0b9dd541835d61a40016fb24ce31f3fcac1fb9",
     "service-worker.js": "feaf1b333e364f5bd20283ecca020e72cc251c339abf465b9d1c3e74871017c5"
