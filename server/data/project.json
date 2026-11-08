@@ -6,7 +6,7 @@
   "hours_per_day": 6,
   "mode": "sprint",
   "created_at": "2026-10-27T19:45:50+08:00",
-  "updated_at": "2026-11-03T23:40:00+08:00",
+  "updated_at": "2026-11-08T23:20:00+08:00",
   "status": "ready",
   "docs": [
     {
@@ -136,9 +136,9 @@
       "ext": ".pdf",
       "size": 13672896,
       "page_count": 38,
-      "chars": 0,
+      "chars": 13640,
       "warnings": [
-        "扫描版 38 页：本次以 19 张作业截图的人工转录为主，未逐页 OCR；小册子用于核对作业范围。"
+        "扫描版 38 页；已用 RapidOCR 自动识别并写入语料，公式/符号需人工校对。"
       ],
       "uploaded_at": "2026-10-27T21:35:02+08:00",
       "source_path": "C:\\Users\\26357\\Desktop\\跨保\\概率统计\\概率统计小册子（高清） (1).pdf",
@@ -146,7 +146,7 @@
     }
   ],
   "analysis": {
-    "version": 3,
+    "version": 4,
     "course": "概率统计（期中冲刺）",
     "exam_date": "2026-11-04",
     "days": 3,
@@ -1374,7 +1374,8 @@
         "rubric": "选 B 得满分；选其他不得分。",
         "explanation": "互斥意味着 AB=∅、P(AB)=0。因此 P(A−B)=P(A)。由于 P(A)、P(B) 都大于 0，P(AB)=0≠P(A)P(B)，A、D 错。P(A∪B)=P(A)+P(B)>P(A)，C 错。只有 B 正确。",
         "difficulty": 1,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_event_probability"
       },
       {
         "id": "q002",
@@ -1410,7 +1411,8 @@
         "rubric": "选 A 得满分。",
         "explanation": "正态分布关于 μ=2 对称。P(0<X<2)=P(2<X<4)=0.3，所以 P(X<0)=0.5−0.3=0.2。",
         "difficulty": 2,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_normal_symmetry"
       },
       {
         "id": "q004",
@@ -1446,7 +1448,8 @@
         "rubric": "选 B 得满分。",
         "explanation": "max≤z 等价于 X≤z 且 Y≤z，所以 F_Z(z)=P(X≤z,Y≤z)。独立时才等于 F_X(z)F_Y(z)；C 是 min 的 CDF。",
         "difficulty": 3,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_max_min"
       },
       {
         "id": "q006",
@@ -1464,7 +1467,8 @@
         "rubric": "选 C 得满分。",
         "explanation": "Cov(aX+b,cY+d)=acCov(X,Y)=2×3×2=12。",
         "difficulty": 2,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_linear_transform"
       },
       {
         "id": "q007",
@@ -1482,7 +1486,8 @@
         "rubric": "选 B 得满分。",
         "explanation": "P(A)=0.3×0.2+0.7×0.1=0.13；P(B₁|A)=0.06/0.13=6/13。",
         "difficulty": 2,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_bayes_posterior"
       },
       {
         "id": "q008",
@@ -1500,7 +1505,8 @@
         "rubric": "选 A 得满分。",
         "explanation": "指数分布无记忆性：已知已经使用了 s，剩余寿命仍服从同一指数分布，所以条件概率等于 P(X>t)=e^(−λt)。",
         "difficulty": 2,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_exponential_memoryless"
       },
       {
         "id": "q009",
@@ -1513,7 +1519,8 @@
         "rubric": "P(AB) 1 分；P(A−B) 1 分；公式写对但算错扣 1 分。",
         "explanation": "先加法公式求交，再用差集公式。",
         "difficulty": 1,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_event_probability"
       },
       {
         "id": "q010",
@@ -1526,7 +1533,24 @@
         "rubric": "E(X) 1 分；D(X) 1 分；P(X=0) 1 分。",
         "explanation": "二项分布 E=np、D=np(1−p)，P(X=0)=(1−p)^n。",
         "difficulty": 2,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "rubric_points": [
+          {
+            "id": "q010-e",
+            "text": "E(X)",
+            "score": 1
+          },
+          {
+            "id": "q010-d",
+            "text": "D(X)",
+            "score": 1
+          },
+          {
+            "id": "q010-p0",
+            "text": "P(X=0)",
+            "score": 1
+          }
+        ]
       },
       {
         "id": "q011",
@@ -1539,7 +1563,8 @@
         "rubric": "写出对称性 1 分，结果 1 分。",
         "explanation": "不要标准化求 σ；直接用正态曲线关于均值对称。",
         "difficulty": 2,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_normal_symmetry"
       },
       {
         "id": "q012",
@@ -1565,7 +1590,8 @@
         "rubric": "事件定义 1 分；全概率式 3 分；结果 2 分；贝叶斯式 2 分；结果 2 分。",
         "explanation": "标准全概率+贝叶斯；两问共用分母 0.029。",
         "difficulty": 2,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_bayes_posterior"
       },
       {
         "id": "q014",
@@ -1578,7 +1604,8 @@
         "rubric": "c 2 分；F 4 分；区间概率 2 分；Y 密度 4 分。",
         "explanation": "归一化、分段积分、F 相减、单调变换公式。",
         "difficulty": 3,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_linear_density"
       },
       {
         "id": "q015",
@@ -1591,7 +1618,8 @@
         "rubric": "c 2 分；两个边缘各 2 分；独立判断 2 分；概率 2 分。",
         "explanation": "矩形支持上联合密度能分解，独立；概率直接二重积分。",
         "difficulty": 3,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_joint_density"
       },
       {
         "id": "q016",
@@ -1604,7 +1632,8 @@
         "rubric": "独立性方程 3 分；α、β 各 1 分；Z 分布 2 分；E(XY) 3 分。",
         "explanation": "本题关键是正确翻译事件 {X=0} 与 {X=Y} 的交事件。",
         "difficulty": 4,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_discrete_joint"
       },
       {
         "id": "q017",
@@ -1617,7 +1646,8 @@
         "rubric": "密度与归一 3 分；P(Y>0) 2 分；联合概率 3 分；条件概率 2 分。",
         "explanation": "均匀分布先算面积；条件概率=交事件概率/条件事件概率。",
         "difficulty": 4,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_joint_density"
       },
       {
         "id": "q018",
@@ -1630,7 +1660,8 @@
         "rubric": "Cov 2 分；E 1 分；D 3 分；Cov(Y,Z) 2 分；ρ 2 分。",
         "explanation": "二维正态给的是标准差；线性组合的方差要带交叉项。",
         "difficulty": 4,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_linear_transform"
       },
       {
         "id": "q019",
@@ -1643,7 +1674,8 @@
         "rubric": "卷积式 2 分；两段密度各 3 分；概率 2 分。",
         "explanation": "卷积的关键是让 x 与 z−x 同时落在 (0,1)。",
         "difficulty": 4,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_max_min"
       },
       {
         "id": "q020",
@@ -1656,7 +1688,8 @@
         "rubric": "M 的 CDF/密度各 2 分；N 的 CDF/密度各 2 分；说明支持 1 分。",
         "explanation": "max 用乘积 CDF，min 用补集；独立指数的最小值仍指数且参数相加。",
         "difficulty": 4,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_max_min"
       },
       {
         "id": "q021",
@@ -1669,7 +1702,8 @@
         "rubric": "判断 1 分；三个两两等式 1 分；三交等式 1 分。",
         "explanation": "经典反例：伯恩斯坦正四面体。",
         "difficulty": 2,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_event_probability"
       },
       {
         "id": "q022",
@@ -1682,7 +1716,8 @@
         "rubric": "分段 CDF 3 分；求导 3 分；支持与最终密度 2 分。",
         "explanation": "X² 非单调，必须把正负两支都算进去。",
         "difficulty": 4,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_one_dimensional_transform"
       },
       {
         "id": "q023",
@@ -1695,7 +1730,8 @@
         "rubric": "两个边缘各 1 分；E、D 各 1 分；E(XY) 2 分；Cov 2 分。",
         "explanation": "这张表实际独立，所以 Cov=0；但仍要按定义算，不能只凭“看起来独立”。",
         "difficulty": 3,
-        "source": "精编仿真练习"
+        "source": "精编仿真练习",
+        "family_id": "family_discrete_joint"
       },
       {
         "id": "x01",
@@ -1709,7 +1745,8 @@
         "explanation": "先由区域面积定常数 3/4；边缘密度分别对另一变量积分；条件密度=联合/边缘；B 是 0≤x²≤y≤1−x²，先求面积再除以 4/3。",
         "difficulty": 4,
         "source": "补充题·二维均匀分布",
-        "estimated_minutes": 15
+        "estimated_minutes": 15,
+        "family_id": "family_joint_density"
       },
       {
         "id": "x02",
@@ -1723,7 +1760,8 @@
         "explanation": "XY≠0 只可能是 X=1,Y=−1，所以该格为 1/4；用 X、Y 的边缘概率补齐其余三格。X+Y 取值 −1,0,1。",
         "difficulty": 3,
         "source": "补充题·离散联合分布",
-        "estimated_minutes": 10
+        "estimated_minutes": 10,
+        "family_id": "family_discrete_joint"
       },
       {
         "id": "s1f01",
@@ -1765,7 +1803,8 @@
         "explanation": "指数分布无记忆性：P(Y≤a+1|Y>a)=P(Y≤1)=1−e⁻¹。",
         "difficulty": 2,
         "source": "模拟试卷1",
-        "estimated_minutes": 2
+        "estimated_minutes": 2,
+        "family_id": "family_exponential_memoryless"
       },
       {
         "id": "s1f04",
@@ -1793,7 +1832,8 @@
         "explanation": "正态分布关于均值 2 对称，P(−1≤X≤2)=P(2≤X≤5)=0.3；故 P(X≤−1)=0.5−0.3=0.2。",
         "difficulty": 2,
         "source": "模拟试卷1",
-        "estimated_minutes": 2
+        "estimated_minutes": 2,
+        "family_id": "family_normal_symmetry"
       },
       {
         "id": "s1c01",
@@ -1812,7 +1852,8 @@
         "explanation": "A、B 互斥：A∩B=∅，所以 A−B=A，P(A−B)=P(A)。其余选项不恒成立。",
         "difficulty": 1,
         "source": "模拟试卷1",
-        "estimated_minutes": 2
+        "estimated_minutes": 2,
+        "family_id": "family_event_probability"
       },
       {
         "id": "s1c02",
@@ -1888,7 +1929,8 @@
         "explanation": "D(2X−Y)=4D(X)+D(Y)=4×16+25=89。",
         "difficulty": 2,
         "source": "模拟试卷1",
-        "estimated_minutes": 2
+        "estimated_minutes": 2,
+        "family_id": "family_linear_transform"
       },
       {
         "id": "s1q01",
@@ -1902,7 +1944,8 @@
         "explanation": "用全概率公式：P(D)=0.25×0.05+0.35×0.04+0.40×0.02。再用贝叶斯公式逐项除以 0.0345。",
         "difficulty": 2,
         "source": "模拟试卷1",
-        "estimated_minutes": 8
+        "estimated_minutes": 8,
+        "family_id": "family_bayes_posterior"
       },
       {
         "id": "s1q02",
@@ -1916,7 +1959,8 @@
         "explanation": "由 ∫0¹ cx dx=1 得 c=2；F(x)=∫0^x 2t dt=x²；区间概率=F(0.7)−F(0.3)=0.49−0.09。",
         "difficulty": 2,
         "source": "模拟试卷1",
-        "estimated_minutes": 8
+        "estimated_minutes": 8,
+        "family_id": "family_linear_density"
       },
       {
         "id": "s1q03",
@@ -1930,7 +1974,8 @@
         "explanation": "F_Z(z)=∫0^√z 2x³e^(−x²)dx，换元 u=x² 得 1−(z+1)e^(−z)，求导得 z e^(−z)；E(Z)=∫0∞ z²e^(−z)dz=2。",
         "difficulty": 3,
         "source": "模拟试卷1",
-        "estimated_minutes": 10
+        "estimated_minutes": 10,
+        "family_id": "family_one_dimensional_transform"
       },
       {
         "id": "s1q04",
@@ -1944,7 +1989,8 @@
         "explanation": "由独立性先求 X 的边缘：P(X=1)=1/3，P(X=2)=1/4，P(X=3)=5/12；再用 P(X=i,Y=2)=P(X=i)P(Y=2) 求 a,b。E(X)=25/12，E(X²)=61/12，方差=107/144。",
         "difficulty": 3,
         "source": "模拟试卷1",
-        "estimated_minutes": 10
+        "estimated_minutes": 10,
+        "family_id": "family_discrete_joint"
       },
       {
         "id": "s1q05",
@@ -1958,7 +2004,8 @@
         "explanation": "归一化 k∫0∞e^(−3x)dx∫0∞e^(−4y)dy=1 得 k=12；边缘相乘等于联合，独立；用卷积公式，注意 Y=(Z−X)/2 的雅可比 1/2。",
         "difficulty": 4,
         "source": "模拟试卷1",
-        "estimated_minutes": 12
+        "estimated_minutes": 12,
+        "family_id": "family_joint_density"
       },
       {
         "id": "s1q06",
@@ -1972,7 +2019,8 @@
         "explanation": "先求 f_Y(y)=y e^(−y)；条件概率=联合区域积分/边缘区域积分。E(XY)=∫0∞∫0^y xy e^(−y) dxdy=1/2∫y³e^(−y)dy=3。",
         "difficulty": 4,
         "source": "模拟试卷1",
-        "estimated_minutes": 12
+        "estimated_minutes": 12,
+        "family_id": "family_joint_density"
       },
       {
         "id": "s2f01",
@@ -2014,7 +2062,8 @@
         "explanation": "P(ĀB̄)=1−P(A)−P(B)+P(AB)；与 P(AB) 相等得 1−P(A)−P(B)=0，所以 P(B)=1−P(A)=0.75。",
         "difficulty": 2,
         "source": "模拟试卷2",
-        "estimated_minutes": 2
+        "estimated_minutes": 2,
+        "family_id": "family_event_probability"
       },
       {
         "id": "s2f04",
@@ -2028,7 +2077,8 @@
         "explanation": "X 的边缘分布关于均值 1 对称，P(1<X<2)=P(0<X<1)=0.3；故 P(X<0)=0.5−0.3=0.2。",
         "difficulty": 2,
         "source": "模拟试卷2",
-        "estimated_minutes": 2
+        "estimated_minutes": 2,
+        "family_id": "family_normal_symmetry"
       },
       {
         "id": "s2f05",
@@ -2042,7 +2092,8 @@
         "explanation": "E(Y)=E(X²)=∫0¹ x² dx=1/3。",
         "difficulty": 1,
         "source": "模拟试卷2",
-        "estimated_minutes": 2
+        "estimated_minutes": 2,
+        "family_id": "family_one_dimensional_transform"
       },
       {
         "id": "s2c01",
@@ -2061,7 +2112,8 @@
         "explanation": "P(A∪B)=P(A)+P(B)−P(AB) 得 P(AB)=0.2；P(A−B)=P(A)−P(AB)=0.2。",
         "difficulty": 1,
         "source": "模拟试卷2",
-        "estimated_minutes": 2
+        "estimated_minutes": 2,
+        "family_id": "family_event_probability"
       },
       {
         "id": "s2c02",
@@ -2137,7 +2189,8 @@
         "explanation": "E(X)=2，E(Y)=3E(X)−2=4。",
         "difficulty": 1,
         "source": "模拟试卷2",
-        "estimated_minutes": 2
+        "estimated_minutes": 2,
+        "family_id": "family_linear_transform"
       },
       {
         "id": "s2q01",
@@ -2151,7 +2204,8 @@
         "explanation": "全概率：P(中)=4/6×0.9+2/6×0.4；贝叶斯：P(未校正|未中)= (2/6×0.6)/(1−11/15)=0.2/(4/15)=3/4。",
         "difficulty": 2,
         "source": "模拟试卷2",
-        "estimated_minutes": 8
+        "estimated_minutes": 8,
+        "family_id": "family_bayes_posterior"
       },
       {
         "id": "s2q02",
@@ -2165,7 +2219,20 @@
         "explanation": "P(AB̄)=0.25×0.4=0.1，故 P(AB)=0.4−0.1=0.3；P(A∪B)=0.4+0.6−0.3=0.7；P(Ā|B)=1−P(A|B)=1−0.3/0.6=0.5。",
         "difficulty": 2,
         "source": "模拟试卷2",
-        "estimated_minutes": 8
+        "estimated_minutes": 8,
+        "rubric_points": [
+          {
+            "id": "s2q02-union",
+            "text": "P(A∪B)",
+            "score": 5
+          },
+          {
+            "id": "s2q02-cond",
+            "text": "P(Ā|B)",
+            "score": 5
+          }
+        ],
+        "family_id": "family_event_probability"
       },
       {
         "id": "s2q03",
@@ -2179,7 +2246,8 @@
         "explanation": "归一化 ab²/2=1，E=ab³/3=5/3，联立得 b=5/2,a=8/25；积分得 F；变量变换 f_Y(y)=f_X((y+1)/2)/2。",
         "difficulty": 3,
         "source": "模拟试卷2",
-        "estimated_minutes": 12
+        "estimated_minutes": 12,
+        "family_id": "family_linear_density"
       },
       {
         "id": "s2q04",
@@ -2193,7 +2261,8 @@
         "explanation": "由分布函数得 X 取 1,2 概率 .4,.6；Y 取 0,1 概率 .3,.7；条件得 P(1,0)=.2，再补表；合并 X+Y 的同值格。",
         "difficulty": 3,
         "source": "模拟试卷2",
-        "estimated_minutes": 12
+        "estimated_minutes": 12,
+        "family_id": "family_discrete_joint"
       },
       {
         "id": "s2q05",
@@ -2207,7 +2276,8 @@
         "explanation": "积分区域 0<x<y<1；归一化 A∫0¹∫_x¹ xy dy dx=1 得 A=8；边缘积分；乘积不等于联合；区域 0<x<1/2,x<y<1−x 积分。",
         "difficulty": 4,
         "source": "模拟试卷2",
-        "estimated_minutes": 15
+        "estimated_minutes": 15,
+        "family_id": "family_joint_density"
       },
       {
         "id": "s2q06",
@@ -2221,7 +2291,8 @@
         "explanation": "P(X>x)=P(所有 X_i>x)=e^(−nx)，所以 F_X(x)=1−e^(−nx)，求导得 n e^(−nx)。",
         "difficulty": 3,
         "source": "模拟试卷2",
-        "estimated_minutes": 10
+        "estimated_minutes": 10,
+        "family_id": "family_max_min"
       }
     ],
     "mock": {
@@ -2839,9 +2910,9 @@
       {
         "doc_id": "d_booklet",
         "name": "概率统计小册子（高清）.pdf",
-        "included": 0,
+        "included": 38,
         "total": 38,
-        "truncated": true
+        "truncated": false
       }
     ],
     "generation": {
@@ -2849,7 +2920,7 @@
       "provider": "本地精编",
       "model": "ExamSprint Probability Pack v1",
       "doc_count": 9,
-      "total_chars": 37910,
+      "total_chars": 51550,
       "doc_stats": [
         {
           "name": "第一章 -.pptx",
@@ -2903,7 +2974,7 @@
           "name": "概率统计小册子（高清）.pdf",
           "kind": "homework",
           "pages": 38,
-          "chars": 0
+          "chars": 13640
         }
       ],
       "warnings": [
@@ -2911,7 +2982,7 @@
         "本冲刺包依据 2021/2022/2024 期中真题、19 张作业截图和 Ch1–Ch4 课件目录人工精编；原始 PDF/PPT 中大量公式是图片，所以采用逐题转录 + 题型分析，而非直接 OCR。",
         "期中范围按 Ch1–Ch4 处理；如果老师给出的范围不同，以老师为准。",
         "题目为仿真练习，不保证命中原题。",
-        "作业小册子是 38 页扫描版，未逐页 OCR；冲刺包以 19 张作业截图的转录为主，建议遇到小册子原题时按老师答案复核。"
+        "作业小册子是 38 页扫描版，已用 RapidOCR 逐页识别并写入语料；公式和符号仍需按老师答案人工校对。"
       ],
       "usage": {},
       "generated_at": "2026-10-27T19:45:50+08:00",
@@ -3730,7 +3801,121 @@
           ]
         }
       ]
-    }
+    },
+    "question_families": [
+      {
+        "id": "family_linear_density",
+        "name": "一维连续型：线性密度+分布函数+区间概率",
+        "question_ids": [
+          "q014",
+          "s1q02",
+          "s2q03"
+        ],
+        "kind": "template"
+      },
+      {
+        "id": "family_normal_symmetry",
+        "name": "正态分布对称性模板",
+        "question_ids": [
+          "q003",
+          "q011",
+          "s1f05",
+          "s2f04"
+        ],
+        "kind": "template"
+      },
+      {
+        "id": "family_bayes_posterior",
+        "name": "全概率/贝叶斯后验模板",
+        "question_ids": [
+          "q007",
+          "q013",
+          "s1q01",
+          "s2q01"
+        ],
+        "kind": "template"
+      },
+      {
+        "id": "family_discrete_joint",
+        "name": "二维离散联合分布/独立性/函数分布",
+        "question_ids": [
+          "q016",
+          "q023",
+          "s1q04",
+          "s2q04",
+          "x02"
+        ],
+        "kind": "template"
+      },
+      {
+        "id": "family_one_dimensional_transform",
+        "name": "一维随机变量函数/平方变换",
+        "question_ids": [
+          "q022",
+          "s1q03",
+          "s2f05"
+        ],
+        "kind": "template"
+      },
+      {
+        "id": "family_exponential_memoryless",
+        "name": "指数分布无记忆性",
+        "question_ids": [
+          "q008",
+          "s1f03"
+        ],
+        "kind": "template"
+      },
+      {
+        "id": "family_event_probability",
+        "name": "事件关系、加法/条件概率模板",
+        "question_ids": [
+          "q001",
+          "q009",
+          "q021",
+          "s1c01",
+          "s2c01",
+          "s2f03",
+          "s2q02"
+        ],
+        "kind": "template"
+      },
+      {
+        "id": "family_joint_density",
+        "name": "二维连续联合密度/边缘/条件模板",
+        "question_ids": [
+          "q015",
+          "q017",
+          "s1q05",
+          "s1q06",
+          "s2q05",
+          "x01"
+        ],
+        "kind": "template"
+      },
+      {
+        "id": "family_max_min",
+        "name": "二维变量函数：和/最大值/最小值",
+        "question_ids": [
+          "q005",
+          "q019",
+          "q020",
+          "s2q06"
+        ],
+        "kind": "template"
+      },
+      {
+        "id": "family_linear_transform",
+        "name": "期望方差协方差的线性变换",
+        "question_ids": [
+          "q006",
+          "q018",
+          "s1c05",
+          "s2c05"
+        ],
+        "kind": "template"
+      }
+    ]
   },
   "job": null,
   "stale": false,
