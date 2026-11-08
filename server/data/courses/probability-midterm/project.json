@@ -6,7 +6,7 @@
   "hours_per_day": 6,
   "mode": "sprint",
   "created_at": "2026-10-27T19:45:50+08:00",
-  "updated_at": "2026-11-03T23:40:00+08:00",
+  "updated_at": "2026-11-08T23:20:00+08:00",
   "status": "ready",
   "docs": [
     {
@@ -136,9 +136,9 @@
       "ext": ".pdf",
       "size": 13672896,
       "page_count": 38,
-      "chars": 0,
+      "chars": 13640,
       "warnings": [
-        "扫描版 38 页：本次以 19 张作业截图的人工转录为主，未逐页 OCR；小册子用于核对作业范围。"
+        "扫描版 38 页；已用 RapidOCR 自动识别并写入语料，公式/符号需人工校对。"
       ],
       "uploaded_at": "2026-10-27T21:35:02+08:00",
       "source_path": "C:\\Users\\26357\\Desktop\\跨保\\概率统计\\概率统计小册子（高清） (1).pdf",
@@ -146,7 +146,7 @@
     }
   ],
   "analysis": {
-    "version": 3,
+    "version": 4,
     "course": "概率统计（期中冲刺）",
     "exam_date": "2026-11-04",
     "days": 3,
@@ -2910,9 +2910,9 @@
       {
         "doc_id": "d_booklet",
         "name": "概率统计小册子（高清）.pdf",
-        "included": 0,
+        "included": 38,
         "total": 38,
-        "truncated": true
+        "truncated": false
       }
     ],
     "generation": {
@@ -2920,7 +2920,7 @@
       "provider": "本地精编",
       "model": "ExamSprint Probability Pack v1",
       "doc_count": 9,
-      "total_chars": 37910,
+      "total_chars": 51550,
       "doc_stats": [
         {
           "name": "第一章 -.pptx",
@@ -2974,7 +2974,7 @@
           "name": "概率统计小册子（高清）.pdf",
           "kind": "homework",
           "pages": 38,
-          "chars": 0
+          "chars": 13640
         }
       ],
       "warnings": [
@@ -2982,7 +2982,7 @@
         "本冲刺包依据 2021/2022/2024 期中真题、19 张作业截图和 Ch1–Ch4 课件目录人工精编；原始 PDF/PPT 中大量公式是图片，所以采用逐题转录 + 题型分析，而非直接 OCR。",
         "期中范围按 Ch1–Ch4 处理；如果老师给出的范围不同，以老师为准。",
         "题目为仿真练习，不保证命中原题。",
-        "作业小册子是 38 页扫描版，未逐页 OCR；冲刺包以 19 张作业截图的转录为主，建议遇到小册子原题时按老师答案复核。"
+        "作业小册子是 38 页扫描版，已用 RapidOCR 逐页识别并写入语料；公式和符号仍需按老师答案人工校对。"
       ],
       "usage": {},
       "generated_at": "2026-10-27T19:45:50+08:00",
