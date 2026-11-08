@@ -1,13 +1,13 @@
 {
   "course": "概率统计（期中冲刺）",
   "course_id": "probability-midterm",
-  "analysis_version": 3,
+  "analysis_version": 4,
   "questions": 57,
-  "analysis_revision": "1c2671c6ff06cb644b75",
+  "analysis_revision": "44915c796feeb589b9d3",
   "assets": {
     "index.html": "25ed8d901a70a3d538cac61368f8b61f8442faa75ad727105edd6665925f6e2a",
     "app.js": "cc8e124202b13a1d6f1231abe8846588a33ce9b57d78b1776d64414c540c0ae2",
-    "data.js": "2628d603c4a41f1f603eabaf8a31c6221ce1c517480af30c736e71f8c0058926",
+    "data.js": "ff3e0e02d95f4fe79826b3ef751ccf18419df836cdd870b4f72b97653b7a61e5",
     "static_bridge.js": "b46ca8c68bf928043562da189cbcc7e9295a8e4f0d78d1f933adc0c4e64161e7",
     "styles.css": "bfedeebf27cb41ccf59d580ec9424b373a11a9934ebf7ec53a7f89e3864cdb00",
     "manifest.webmanifest": "702a78a8c16e1e84865eac95ce0b9dd541835d61a40016fb24ce31f3fcac1fb9",
