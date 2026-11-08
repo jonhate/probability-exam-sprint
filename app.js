@@ -793,7 +793,7 @@
       <p><b>你的答案：</b>${esc(s.answerDisplay || "（未作答）")}</p>
       <p><b>参考答案：</b>${esc(Array.isArray(q.answer) ? q.answer.join("、") : q.answer)}</p>
       ${q.rubric ? `<p><b>评分点：</b>${esc(q.rubric)}</p>` : ""}
-      ${q.explanation ? `<p><b>解析：</b>${esc(q.explanation)}</p>` : ""}</div>`;
+      ${q.explanation ? `<p><b>解析：</b>${esc(q.explanation)}</p>` : ""}${!good ? `<div class="hero-actions"><button class="btn btn-sm btn-accent" data-action="practice-retry">立即纠错：看解析重做</button><button class="btn btn-sm" data-action="practice-verify">换新题独立验证</button></div>` : ""}</div>`;
   }
 
   function startPractice(mode = "10", topicId = null) {
@@ -1493,6 +1493,23 @@
       else if (action === "refresh-learning") { S.practice = null; await load(); }
       else if (action === "learning-home") { S.practice = null; S.view = "dashboard"; await load(); }
       else if (action === "practice-help") { if (S.practice) { S.practice.openAnswer = $("#practiceAnswer")?.value || S.practice.openAnswer; S.practice.assisted = true; S.practice.answerExposed = true; render(); } }
+      else if (action === "practice-retry") {
+        if (S.practice) {
+          const q = S.practice.questions[S.practice.index];
+          S.practice = { questions: [q], index: 0, selected: [], openAnswer: "", submitted: false, result: null, recorded: false, correct: 0, answered: 0, answerDisplay: "", startedAt: Date.now(), assisted: true, answerExposed: true };
+          render();
+        }
+      }
+      else if (action === "practice-verify") {
+        const s = S.practice;
+        if (s) {
+          const q = s.questions[s.index];
+          const nextQ = allQuestions().find((x) => x.id !== q.id && x.topic_id === q.topic_id && !(progress().questions?.[x.id]?.attempts || []).length);
+          if (!nextQ) { toast("这个考点暂时没有未练新题；先做错题回炉或等间隔复测。", "error"); return; }
+          S.practice = { questions: [nextQ], index: 0, selected: [], openAnswer: "", submitted: false, result: null, recorded: false, correct: 0, answered: 0, answerDisplay: "", startedAt: Date.now(), assisted: false, answerExposed: false };
+          render();
+        }
+      }
       else if (action === "start-zero") { document.getElementById("zeroTools")?.scrollIntoView({ behavior: "smooth", block: "start" }); }
       else if (action === "scroll-zero-diag") { document.getElementById("zeroDiag")?.scrollIntoView({ behavior: "smooth", block: "start" }); }
       else if (action === "quick-practice") startPractice("10");
