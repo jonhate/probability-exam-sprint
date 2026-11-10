@@ -352,7 +352,7 @@
     <div class="daily-progress card card-pad">
       <div class="daily-progress-head"><div><b>今天已经学了 ${dailyDone} / ${dailyTotal} 分钟</b><span>${dailyPercent}%</span></div><span class="small muted">今天的目标是 ${dailyTotal} 分钟，不用自己算“学到哪”</span></div>
       <div class="bar"><span style="width:${dailyPercent}%"></span></div>
-      <div class="daily-progress-foot"><span>课程覆盖：${topicDone}/${topicTotal} 个考点有独立作答记录</span><span class="bar bar-sm"><span style="width:${topicPercent}%"></span></span></div>
+      <div class="daily-progress-foot"><span>课程覆盖：${topicDone}/${topicTotal} 个考点有独立作答记录</span><span class="mini-bar"><span style="width:${topicPercent}%"></span></span></div>
     </div>
     ${focus}
     <details class="learning-advanced">
