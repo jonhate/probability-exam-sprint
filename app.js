@@ -162,7 +162,10 @@
         if (fresh) S.view = "dashboard";
         S.initialViewDone = true;
       }
-      if (!S.data.project.analysis && !["dashboard", "docs", "practice", "mock", "errors", "study", "map", "zero"].includes(S.view)) S.view = "dashboard";
+      const allowedViews = ["dashboard", "docs", "practice", "mock", "errors", "study", "map", "zero"];
+      if (!S.data.project.analysis && !allowedViews.includes(S.view)) S.view = "dashboard";
+      const hashView = typeof location !== "undefined" ? location.hash.replace(/^#/, "") : "";
+      if (allowedViews.includes(hashView)) S.view = hashView;
       render();
       if (S.data.project.job && S.data.project.job.status === "running") startJobPolling();
     } catch (err) {
@@ -1504,6 +1507,7 @@
     if (nav) {
       const view = nav.dataset.nav;
       S.view = view;
+      if (typeof history !== "undefined" && location.hash !== `#${view}`) history.pushState({ view }, "", `#${view}`);
       if (view !== "practice") { /* keep practice state when navigating back */ }
       if (view === "study" && S.studyTab === "flashcards") rebuildCardOrder();
       document.body.classList.remove("nav-open");
@@ -1717,3 +1721,10 @@
   hydrateIcons();
   load();
 })();
+
+
+  window.addEventListener("popstate", () => {
+    const view = typeof location !== "undefined" ? (location.hash.replace(/^#/, "") || "dashboard") : "dashboard";
+    const allowed = ["dashboard", "docs", "practice", "mock", "errors", "study", "map", "zero"];
+    if (allowed.includes(view)) { S.view = view; document.body.classList.remove("nav-open"); render(); }
+  });
