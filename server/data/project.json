@@ -6,7 +6,7 @@
   "hours_per_day": 6,
   "mode": "sprint",
   "created_at": "2026-10-27T19:45:50+08:00",
-  "updated_at": "2026-11-08T23:20:00+08:00",
+  "updated_at": "2026-11-10T19:10:00+08:00",
   "status": "ready",
   "docs": [
     {
@@ -146,7 +146,7 @@
     }
   ],
   "analysis": {
-    "version": 4,
+    "version": 7,
     "course": "概率统计（期中冲刺）",
     "exam_date": "2026-11-04",
     "days": 3,
@@ -326,7 +326,8 @@
             "只写算式不写事件含义，过程分容易丢。"
           ],
           "answer_template": "①设 B_i 为原因、A 为结果；②列先验和 P(A|B_i)；③全概率求 P(A)；④贝叶斯求目标后验；⑤写实际含义。"
-        }
+        },
+        "homework_weight": 1.3
       },
       {
         "id": "t02",
@@ -393,7 +394,8 @@
             "对连续型纠结 P(X=a)，白丢时间。"
           ],
           "answer_template": "①写 f 的非零区间；②∫f=1 求常数；③分段求 F；④用 F(b)-F(a) 求概率；⑤检查极限与右连续。"
-        }
+        },
+        "homework_weight": 1.3
       },
       {
         "id": "t03",
@@ -459,7 +461,8 @@
             "把 F_Y 的表达式直接当密度交卷。"
           ],
           "answer_template": "①求 Y 范围；②写 F_Y(y)=P(g(X)≤y)；③解出 X 范围并用 F_X 表示；④求导；⑤写分段与支持。"
-        }
+        },
+        "homework_weight": 1.2
       },
       {
         "id": "t04",
@@ -527,7 +530,8 @@
             "边缘密度忘记写“其他为 0”。"
           ],
           "answer_template": "①画 D；②归一化求 c；③求边缘；④判断独立；⑤条件密度/条件概率；⑥每个结果写支持。"
-        }
+        },
+        "homework_weight": 1.3
       },
       {
         "id": "t05",
@@ -597,7 +601,8 @@
             "二维正态的 σ 是标准差，不是方差；题目给 9、4 时 D 就是 9、4。"
           ],
           "answer_template": "①列 E、D、Cov 已知；②算目标 E；③展开 D；④算 Cov；⑤算 ρ；⑥写范围与解释。"
-        }
+        },
+        "homework_weight": 1.15
       },
       {
         "id": "t06",
@@ -667,7 +672,8 @@
             "概率表有 0 时直接判独立，需逐格核对。"
           ],
           "answer_template": "①补表归一化；②用独立性列方程；③求边缘；④求 Z 分布；⑤算 E(XY)；⑥检查概率和为 1。"
-        }
+        },
+        "homework_weight": 1.15
       },
       {
         "id": "t07",
@@ -738,7 +744,8 @@
             "二项分布与泊松近似的条件用错。"
           ],
           "answer_template": "①认分布；②写参数；③套 E/D 或标准化；④用对称性/无记忆；⑤检查概率在 [0,1]。"
-        }
+        },
+        "homework_weight": 1.05
       },
       {
         "id": "t08",
@@ -805,7 +812,8 @@
             "三事件加法漏掉 +P(ABC)。"
           ],
           "answer_template": "①翻译集合；②写加法/差集公式；③代入；④检查非负与不超过 1。"
-        }
+        },
+        "homework_weight": 1.0
       },
       {
         "id": "t09",
@@ -874,7 +882,8 @@
             "求并集时忘记先求交。"
           ],
           "answer_template": "①写条件；②用乘法公式求交；③求并；④三事件检查四个等式。"
-        }
+        },
+        "homework_weight": 1.0
       },
       {
         "id": "t10",
@@ -942,7 +951,8 @@
             "认为 F 必须严格递增。"
           ],
           "answer_template": "①看跳跃点；②算每点跳跃高度；③列分布律；④检查概率和为 1。"
-        }
+        },
+        "homework_weight": 0.95
       },
       {
         "id": "t11",
@@ -1003,7 +1013,8 @@
             "忘记写分段范围。"
           ],
           "answer_template": "①判断独立/离散；②写 F_Z；③画区域定限；④求导或并项；⑤写分段。"
-        }
+        },
+        "homework_weight": 1.0
       },
       {
         "id": "t12",
@@ -1064,7 +1075,8 @@
             "在 3 分题上花 20 分钟。"
           ],
           "answer_template": "①判断概型；②数样本点/画区域；③算比值；④超过 2 分钟先跳过。"
-        }
+        },
+        "homework_weight": 0.9
       }
     ],
     "cards": [
@@ -1363,16 +1375,16 @@
         "topic_id": "t08",
         "topic": "事件关系与概率加法公式",
         "type": "single",
-        "stem": "设 A、B 为两个概率都大于 0 的互斥事件，则下列结论一定正确的是（ ）。",
+        "stem": "设 A、B 为两个概率都大于 0 的互斥事件。下列结论一定正确的是（ ）。",
         "options": [
           "A. A 与 B 相互独立",
-          "B. P(A−B)=P(A)",
+          "B. P(A−B)=P(A)，其中 A−B 表示“A 发生但 B 不发生”",
           "C. P(A∪B)=P(A)",
           "D. P(AB)=P(A)P(B)"
         ],
         "answer": "B",
         "rubric": "选 B 得满分；选其他不得分。",
-        "explanation": "互斥意味着 AB=∅、P(AB)=0。因此 P(A−B)=P(A)。由于 P(A)、P(B) 都大于 0，P(AB)=0≠P(A)P(B)，A、D 错。P(A∪B)=P(A)+P(B)>P(A)，C 错。只有 B 正确。",
+        "explanation": "互斥的意思是 A、B 不能同时发生，所以 P(AB)=0。A−B 表示“A 发生但 B 不发生”；既然 B 不可能和 A 同时发生，A−B 仍然等于 A，因此 P(A−B)=P(A)。P(A)、P(B) 都大于 0 时 P(AB)=0 不等于 P(A)P(B)，所以 A、D 错；P(A∪B)=P(A)+P(B)>P(A)，C 错。只有 B 正确。",
         "difficulty": 1,
         "source": "精编仿真练习",
         "family_id": "family_event_probability"
@@ -2293,6 +2305,241 @@
         "source": "模拟试卷2",
         "estimated_minutes": 10,
         "family_id": "family_max_min"
+      },
+      {
+        "id": "hb01",
+        "topic_id": "t02",
+        "topic": "一维连续型：密度、分布函数、区间概率",
+        "type": "short",
+        "stem": "设 X~U(0,15)，求 P(2.6≤X≤7.6)。",
+        "options": [],
+        "answer": "1/3",
+        "rubric": "区间长度 5；均匀密度 1/15；相乘得 1/3。",
+        "explanation": "X 在 [0,15] 上均匀分布，区间长度为 5，所以概率=5/15=1/3。",
+        "difficulty": 1,
+        "source": "小册子作业·第2章",
+        "estimated_minutes": 2
+      },
+      {
+        "id": "hb02",
+        "topic_id": "t02",
+        "topic": "一维连续型：密度、分布函数、区间概率",
+        "type": "short",
+        "stem": "已知随机变量 X 的分布函数 F(x)=2A+3B arccot x，求 A、B。",
+        "options": [],
+        "answer": "A=1/2，B=−1/(3π)",
+        "rubric": "用 F(−∞)=0；用 F(+∞)=1；解出 A、B。",
+        "explanation": "x→+∞ 时 arccot x→0，F=1 得 A=1/2；x→−∞ 时 arccot x→π，F=0 得 B=−1/(3π)。",
+        "difficulty": 2,
+        "source": "小册子作业·第2章",
+        "estimated_minutes": 3
+      },
+      {
+        "id": "hb03",
+        "topic_id": "t02",
+        "topic": "一维连续型：密度、分布函数、区间概率",
+        "type": "calculation",
+        "stem": "设连续型随机变量 X 的概率密度为 f(x)=Ax²（0≤x≤1），其他为 0。求：(1) A；(2) P(0.3<X<0.7)；(3) F(x)；(4) Y=3X+2 的概率密度。",
+        "options": [],
+        "answer": "A=3；P=0.316；F(x)=0(x<0),x³(0≤x≤1),1(x≥1)；f_Y(y)=(y−2)²/9（2≤y≤5）。",
+        "rubric": "A 2 分；区间概率 2 分；F 3 分；Y 密度 3 分。",
+        "explanation": "由 ∫0¹ Ax²dx=A/3=1 得 A=3；P=F(0.7)−F(0.3)=0.343−0.027=0.316；F=∫0^x 3t²dt=x³；变量变换 f_Y(y)=f_X((y−2)/3)/3。",
+        "difficulty": 3,
+        "source": "小册子作业·第2章",
+        "estimated_minutes": 10
+      },
+      {
+        "id": "hb04",
+        "topic_id": "t02",
+        "topic": "一维连续型：密度、分布函数、区间概率",
+        "type": "calculation",
+        "stem": "设连续型随机变量 X 的分布函数为 F(x)=1−(1+x)e^(−x)（x≥0），x<0 时为 0。求：(1) X 的概率密度；(2) P(X≤2)。",
+        "options": [],
+        "answer": "f(x)=x e^(−x)（x≥0）；P(X≤2)=1−3e⁻²。",
+        "rubric": "求导得密度 5 分；代入 F(2) 得概率 3 分。",
+        "explanation": "对 F 求导：d/dx[1−(1+x)e^(−x)]=x e^(−x)；P(X≤2)=F(2)=1−3e⁻²。",
+        "difficulty": 3,
+        "source": "小册子作业·第2章",
+        "estimated_minutes": 8
+      },
+      {
+        "id": "hb05",
+        "topic_id": "t04",
+        "topic": "二维连续型：联合密度、边缘、条件、独立",
+        "type": "single",
+        "stem": "设二维随机变量 (X,Y) 在区域 G（由 y=x² 与 y=x 围成）上服从均匀分布，则联合概率密度为（ ）。",
+        "options": [
+          "A. 4",
+          "B. 1/6",
+          "C. 3",
+          "D. 6"
+        ],
+        "answer": "D",
+        "rubric": "选 D 得 3 分。",
+        "explanation": "区域面积 ∫0¹(x−x²)dx=1/6，均匀密度为面积的倒数 6。",
+        "difficulty": 2,
+        "source": "小册子作业·第3章",
+        "estimated_minutes": 3
+      },
+      {
+        "id": "hb06",
+        "topic_id": "t05",
+        "topic": "期望、方差、协方差与相关系数",
+        "type": "single",
+        "stem": "设 X、Y 相互独立，D(X)=4，D(Y)=2，则 D(3X−2Y)=（ ）。",
+        "options": [
+          "A. 8",
+          "B. 16",
+          "C. 28",
+          "D. 44"
+        ],
+        "answer": "D",
+        "rubric": "选 D 得 3 分。",
+        "explanation": "D(3X−2Y)=9D(X)+4D(Y)=9×4+4×2=44。",
+        "difficulty": 1,
+        "source": "小册子作业·第4章",
+        "estimated_minutes": 2
+      },
+      {
+        "id": "hb07",
+        "topic_id": "t05",
+        "topic": "期望、方差、协方差与相关系数",
+        "type": "short",
+        "stem": "设 D(X)=2，D(Y)=3，Cov(X,Y)=−1，求 Cov(3X−2Y+1, X+4Y−3)。",
+        "options": [],
+        "answer": "−28",
+        "rubric": "展开双线性 4 项；每项符号正确；结果 −28。",
+        "explanation": "Cov=3D(X)+12Cov−2Cov−8D(Y)=3×2+(12−2)(−1)−8×3=−28。",
+        "difficulty": 2,
+        "source": "小册子作业·第4章",
+        "estimated_minutes": 4
+      },
+      {
+        "id": "hb08",
+        "topic_id": "t07",
+        "topic": "常见分布与正态标准化",
+        "type": "single",
+        "stem": "设 X~N(0,1)，Y=2X−1，则 Y 的分布为（ ）。",
+        "options": [
+          "A. N(0,1)",
+          "B. N(−1,4)",
+          "C. N(−1,3)",
+          "D. N(−1,1)"
+        ],
+        "answer": "B",
+        "rubric": "选 B 得 3 分。",
+        "explanation": "E(Y)=−1，D(Y)=4D(X)=4，所以 Y~N(−1,4)。",
+        "difficulty": 1,
+        "source": "小册子作业·第2章",
+        "estimated_minutes": 2
+      },
+      {
+        "id": "hb09",
+        "topic_id": "t07",
+        "topic": "常见分布与正态标准化",
+        "type": "short",
+        "stem": "设 X~N(3,σ²)，且 P(3<X<5)=0.2，求 P(X<1)。",
+        "options": [],
+        "answer": "0.3",
+        "rubric": "利用关于均值 3 的对称性；答案 0.3。",
+        "explanation": "P(1<X<3)=P(3<X<5)=0.2，所以 P(X<1)=0.5−0.2=0.3。",
+        "difficulty": 2,
+        "source": "小册子作业·第2章",
+        "estimated_minutes": 2
+      },
+      {
+        "id": "hb10",
+        "topic_id": "t08",
+        "topic": "事件关系与概率加法公式",
+        "type": "short",
+        "stem": "设 P(A)=0.6，P(B)=0.7。问：P(AB) 在什么条件下取最大值、最大值是多少？在什么条件下取最小值、最小值是多少？",
+        "options": [],
+        "answer": "最大值在 A⊂B 时取得，为 0.6；最小值在 P(A∪B)=1 时取得，为 0.3。",
+        "rubric": "最大值及条件 2 分；最小值及条件 2 分。",
+        "explanation": "P(AB)≤min(P(A),P(B))=0.6，A⊂B 时取到；又 P(AB)=P(A)+P(B)−P(A∪B)≥0.6+0.7−1=0.3，P(A∪B)=1 时取到。",
+        "difficulty": 2,
+        "source": "小册子作业·第1章",
+        "estimated_minutes": 4
+      },
+      {
+        "id": "hb11",
+        "topic_id": "t11",
+        "topic": "二维随机变量函数的分布：和、max、min",
+        "type": "short",
+        "stem": "设 X、Y 相互独立，且都服从 U(0,3)。求 P(max(X,Y)≤1)。",
+        "options": [],
+        "answer": "1/9",
+        "rubric": "拆成两个独立事件；每个概率 1/3；相乘得 1/9。",
+        "explanation": "max(X,Y)≤1 等价于 X≤1 且 Y≤1，故概率=(1/3)(1/3)=1/9。",
+        "difficulty": 1,
+        "source": "小册子作业·第3章",
+        "estimated_minutes": 2
+      },
+      {
+        "id": "hb12",
+        "topic_id": "t07",
+        "topic": "常见分布与正态标准化",
+        "type": "single",
+        "stem": "设 X、Y 相互独立，X~P(3)，Y~P(2)，则 P(X+Y=0)=（ ）。",
+        "options": [
+          "A. e⁻⁵",
+          "B. e⁻³",
+          "C. e⁻²",
+          "D. e⁻¹"
+        ],
+        "answer": "A",
+        "rubric": "选 A 得 3 分。",
+        "explanation": "X+Y~P(5)，所以 P(X+Y=0)=e⁻⁵。",
+        "difficulty": 1,
+        "source": "小册子作业·第3章",
+        "estimated_minutes": 2
+      },
+      {
+        "id": "hb13",
+        "topic_id": "t05",
+        "topic": "期望、方差、协方差与相关系数",
+        "type": "short",
+        "stem": "设随机变量 X、Y 满足 2X+3Y=6，且 X 不是常数，求 X 与 Y 的相关系数 ρ_XY。",
+        "options": [],
+        "answer": "−1",
+        "rubric": "说明 Y 是 X 的负斜率线性函数；相关系数 −1。",
+        "explanation": "Y=(6−2X)/3，Y 与 X 是完全负线性关系，所以 ρ_XY=−1。",
+        "difficulty": 1,
+        "source": "小册子作业·第4章",
+        "estimated_minutes": 2
+      },
+      {
+        "id": "hb14",
+        "topic_id": "t02",
+        "topic": "一维连续型：密度、分布函数、区间概率",
+        "type": "short",
+        "stem": "设随机变量 X 的分布函数为 F(x)。用 F 表示：(1) P(X≤a)；(2) P(X=a)；(3) P(X>a)；(4) P(x₁<X≤x₂)。",
+        "options": [],
+        "answer": "F(a)；F(a)−F(a−)；1−F(a)；F(x₂)−F(x₁)。",
+        "rubric": "四个表达式各 1 分；注意左端点。",
+        "explanation": "分布函数是右连续；单点概率用左右极限差，区间概率用右端点减左端点。",
+        "difficulty": 2,
+        "source": "小册子作业·第2章",
+        "estimated_minutes": 3
+      },
+      {
+        "id": "hb15",
+        "topic_id": "t07",
+        "topic": "常见分布与正态标准化",
+        "type": "single",
+        "stem": "设 X~N(0,1)，Y=3X−2，则 Y 的分布为（ ）。",
+        "options": [
+          "A. N(0,1)",
+          "B. N(−2,9)",
+          "C. N(−2,3)",
+          "D. N(2,9)"
+        ],
+        "answer": "B",
+        "rubric": "选 B 得 3 分。",
+        "explanation": "E(Y)=−2，D(Y)=9，所以 Y~N(−2,9)。",
+        "difficulty": 1,
+        "source": "小册子作业·第4章",
+        "estimated_minutes": 2
       }
     ],
     "mock": {
@@ -3915,7 +4162,15 @@
         ],
         "kind": "template"
       }
-    ]
+    ],
+    "homework": {
+      "source_doc_id": "d_booklet",
+      "name": "概率统计小册子（高清）.pdf",
+      "pages": 38,
+      "included": true,
+      "question_count": 15,
+      "note": "从38页作业集抽取9道代表题加入练习；OCR全文在 corpus.d_booklet，公式需人工校对。"
+    }
   },
   "job": null,
   "stale": false,
