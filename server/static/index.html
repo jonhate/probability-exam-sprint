@@ -6,6 +6,7 @@
   <meta name="robots" content="noindex,nofollow">
   <meta name="color-scheme" content="light">
   <title>ExamSprint · 考前冲刺 Agent</title>
+  <link rel="stylesheet" href="/static/vendor/katex/katex.min.css">
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
@@ -98,6 +99,8 @@
   </aside>
   <div class="drawer-scrim" id="drawerScrim" data-action="close-ask"></div>
   <div class="toast-stack" id="toastStack"></div>
+  <script src="/static/vendor/katex/katex.min.js"></script>
   <script src="/static/app.js"></script>
+  <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./service-worker.js").catch(() => {});</script>
 </body>
 </html>
