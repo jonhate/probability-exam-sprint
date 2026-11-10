@@ -6,10 +6,10 @@
   "analysis_revision": "ed7d698b2187afeb652e",
   "assets": {
     "index.html": "417f0dc15d2879208df1866acf6279c5d0384cae4e8499c26b3e1cd6a952f27c",
-    "app.js": "857320d6fdb51ef6ed40e1844aed1727acddf0ce7bd876855ddf49a2b4ed6712",
+    "app.js": "ffbfc03e348193917c0779692ff110c9cd6a24ad21056d14acdf520018863984",
     "data.js": "9a778aabe49b520ab6f083d7c78f290d8e52507974d471c9faef5ce0d9a38ff0",
     "static_bridge.js": "6c9bcc2705f7395330096c3bcd40a03353cc4bca1b4fa1488b42319a30e2df0e",
-    "styles.css": "b796fd2ca76af2776b557b912ce6257446b4f98f090e73f8a6bf85992a5aef71",
+    "styles.css": "362aac4e42b0cd79d8789c864a0bd292b40475fe0f5fd8516b26e9f49fede1b1",
     "manifest.webmanifest": "702a78a8c16e1e84865eac95ce0b9dd541835d61a40016fb24ce31f3fcac1fb9",
     "service-worker.js": "feaf1b333e364f5bd20283ecca020e72cc251c339abf465b9d1c3e74871017c5"
   }
