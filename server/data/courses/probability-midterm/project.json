@@ -6,7 +6,7 @@
   "hours_per_day": 6,
   "mode": "sprint",
   "created_at": "2026-10-27T19:45:50+08:00",
-  "updated_at": "2026-11-08T23:40:00+08:00",
+  "updated_at": "2026-11-10T19:10:00+08:00",
   "status": "ready",
   "docs": [
     {
@@ -146,7 +146,7 @@
     }
   ],
   "analysis": {
-    "version": 6,
+    "version": 7,
     "course": "概率统计（期中冲刺）",
     "exam_date": "2026-11-04",
     "days": 3,
@@ -1375,16 +1375,16 @@
         "topic_id": "t08",
         "topic": "事件关系与概率加法公式",
         "type": "single",
-        "stem": "设 A、B 为两个概率都大于 0 的互斥事件，则下列结论一定正确的是（ ）。",
+        "stem": "设 A、B 为两个概率都大于 0 的互斥事件。下列结论一定正确的是（ ）。",
         "options": [
           "A. A 与 B 相互独立",
-          "B. P(A−B)=P(A)",
+          "B. P(A−B)=P(A)，其中 A−B 表示“A 发生但 B 不发生”",
           "C. P(A∪B)=P(A)",
           "D. P(AB)=P(A)P(B)"
         ],
         "answer": "B",
         "rubric": "选 B 得满分；选其他不得分。",
-        "explanation": "互斥意味着 AB=∅、P(AB)=0。因此 P(A−B)=P(A)。由于 P(A)、P(B) 都大于 0，P(AB)=0≠P(A)P(B)，A、D 错。P(A∪B)=P(A)+P(B)>P(A)，C 错。只有 B 正确。",
+        "explanation": "互斥的意思是 A、B 不能同时发生，所以 P(AB)=0。A−B 表示“A 发生但 B 不发生”；既然 B 不可能和 A 同时发生，A−B 仍然等于 A，因此 P(A−B)=P(A)。P(A)、P(B) 都大于 0 时 P(AB)=0 不等于 P(A)P(B)，所以 A、D 错；P(A∪B)=P(A)+P(B)>P(A)，C 错。只有 B 正确。",
         "difficulty": 1,
         "source": "精编仿真练习",
         "family_id": "family_event_probability"
