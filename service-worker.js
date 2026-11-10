@@ -1,11 +1,13 @@
 /* ExamSprint static PWA. Cache first for study assets, network first for navigation. */
-const CACHE = "examsprint-static-v5";
+const CACHE = "examsprint-static-v6";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
   "./data.js",
+  "./vendor/katex/katex.min.js",
+  "./vendor/katex/katex.min.css",
   "./static_bridge.js",
   "./manifest.webmanifest",
   "./icon-192.png",
