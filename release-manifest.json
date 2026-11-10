@@ -1,15 +1,15 @@
 {
   "course": "概率统计（期中冲刺）",
   "course_id": "probability-midterm",
-  "analysis_version": 6,
+  "analysis_version": 7,
   "questions": 72,
-  "analysis_revision": "0db0fa0b3c7d95b832e3",
+  "analysis_revision": "ed7d698b2187afeb652e",
   "assets": {
-    "index.html": "25ed8d901a70a3d538cac61368f8b61f8442faa75ad727105edd6665925f6e2a",
-    "app.js": "499db0cc7243eacbaf791637f3fd4118cec4b0160cda341d9c60ebf0b7f061d7",
-    "data.js": "4a014fbed2708aae7edbeeb62e737348c4ae53f996837b9ae3f4197e1ee982de",
-    "static_bridge.js": "e72375e2a34cf1a0a977bec52ffa90854f836c2feeed4bfd31679425cd4cfee1",
-    "styles.css": "bfedeebf27cb41ccf59d580ec9424b373a11a9934ebf7ec53a7f89e3864cdb00",
+    "index.html": "417f0dc15d2879208df1866acf6279c5d0384cae4e8499c26b3e1cd6a952f27c",
+    "app.js": "857320d6fdb51ef6ed40e1844aed1727acddf0ce7bd876855ddf49a2b4ed6712",
+    "data.js": "9a778aabe49b520ab6f083d7c78f290d8e52507974d471c9faef5ce0d9a38ff0",
+    "static_bridge.js": "6c9bcc2705f7395330096c3bcd40a03353cc4bca1b4fa1488b42319a30e2df0e",
+    "styles.css": "b796fd2ca76af2776b557b912ce6257446b4f98f090e73f8a6bf85992a5aef71",
     "manifest.webmanifest": "702a78a8c16e1e84865eac95ce0b9dd541835d61a40016fb24ce31f3fcac1fb9",
     "service-worker.js": "feaf1b333e364f5bd20283ecca020e72cc251c339abf465b9d1c3e74871017c5"
   }
