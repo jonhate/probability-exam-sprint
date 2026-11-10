@@ -6,7 +6,7 @@
   "hours_per_day": 6,
   "mode": "sprint",
   "created_at": "2026-10-27T19:45:50+08:00",
-  "updated_at": "2026-11-10T19:10:00+08:00",
+  "updated_at": "2026-11-10T20:00:00+08:00",
   "status": "ready",
   "docs": [
     {
@@ -146,7 +146,7 @@
     }
   ],
   "analysis": {
-    "version": 7,
+    "version": 9,
     "course": "概率统计（期中冲刺）",
     "exam_date": "2026-11-04",
     "days": 3,
@@ -327,7 +327,8 @@
           ],
           "answer_template": "①设 B_i 为原因、A 为结果；②列先验和 P(A|B_i)；③全概率求 P(A)；④贝叶斯求目标后验；⑤写实际含义。"
         },
-        "homework_weight": 1.3
+        "homework_weight": 1.3,
+        "formula_tex": "P(A)=\\sum_i P(B_i)P(A\\mid B_i),\\quad P(B_k\\mid A)=\\frac{P(B_k)P(A\\mid B_k)}{P(A)}"
       },
       {
         "id": "t02",
@@ -395,7 +396,8 @@
           ],
           "answer_template": "①写 f 的非零区间；②∫f=1 求常数；③分段求 F；④用 F(b)-F(a) 求概率；⑤检查极限与右连续。"
         },
-        "homework_weight": 1.3
+        "homework_weight": 1.3,
+        "formula_tex": "\\int_{-\\infty}^{+\\infty} f(x)\\,dx=1,\\quad F(x)=\\int_{-\\infty}^{x} f(t)\\,dt,\\quad P(a<X\\le b)=F(b)-F(a)"
       },
       {
         "id": "t03",
@@ -462,7 +464,8 @@
           ],
           "answer_template": "①求 Y 范围；②写 F_Y(y)=P(g(X)≤y)；③解出 X 范围并用 F_X 表示；④求导；⑤写分段与支持。"
         },
-        "homework_weight": 1.2
+        "homework_weight": 1.2,
+        "formula_tex": "F_Y(y)=P(g(X)\\le y),\\quad f_Y(y)=F_Y^{\\prime}(y)"
       },
       {
         "id": "t04",
@@ -531,7 +534,8 @@
           ],
           "answer_template": "①画 D；②归一化求 c；③求边缘；④判断独立；⑤条件密度/条件概率；⑥每个结果写支持。"
         },
-        "homework_weight": 1.3
+        "homework_weight": 1.3,
+        "formula_tex": "f_X(x)=\\int_{-\\infty}^{+\\infty} f(x,y)\\,dy,\\quad f_{Y\\mid X}(y\\mid x)=\\frac{f(x,y)}{f_X(x)}"
       },
       {
         "id": "t05",
@@ -602,7 +606,8 @@
           ],
           "answer_template": "①列 E、D、Cov 已知；②算目标 E；③展开 D；④算 Cov；⑤算 ρ；⑥写范围与解释。"
         },
-        "homework_weight": 1.15
+        "homework_weight": 1.15,
+        "formula_tex": "D(X)=E(X^2)-[E(X)]^2,\\quad \\operatorname{Cov}(X,Y)=E(XY)-E(X)E(Y)"
       },
       {
         "id": "t06",
@@ -673,7 +678,8 @@
           ],
           "answer_template": "①补表归一化；②用独立性列方程；③求边缘；④求 Z 分布；⑤算 E(XY)；⑥检查概率和为 1。"
         },
-        "homework_weight": 1.15
+        "homework_weight": 1.15,
+        "formula_tex": "P(X=x_i,Y=y_j)=p_{ij},\\quad p_i=\\sum_j p_{ij}"
       },
       {
         "id": "t07",
@@ -745,7 +751,8 @@
           ],
           "answer_template": "①认分布；②写参数；③套 E/D 或标准化；④用对称性/无记忆；⑤检查概率在 [0,1]。"
         },
-        "homework_weight": 1.05
+        "homework_weight": 1.05,
+        "formula_tex": "X\\sim N(\\mu,\\sigma^2)\\Rightarrow Z=\\frac{X-\\mu}{\\sigma}\\sim N(0,1)"
       },
       {
         "id": "t08",
@@ -813,7 +820,8 @@
           ],
           "answer_template": "①翻译集合；②写加法/差集公式；③代入；④检查非负与不超过 1。"
         },
-        "homework_weight": 1.0
+        "homework_weight": 1.0,
+        "formula_tex": "P(A\\cup B)=P(A)+P(B)-P(AB)"
       },
       {
         "id": "t09",
@@ -883,7 +891,8 @@
           ],
           "answer_template": "①写条件；②用乘法公式求交；③求并；④三事件检查四个等式。"
         },
-        "homework_weight": 1.0
+        "homework_weight": 1.0,
+        "formula_tex": "P(A\\mid B)=\\frac{P(AB)}{P(B)},\\quad P(AB)=P(B)P(A\\mid B)"
       },
       {
         "id": "t10",
@@ -952,7 +961,8 @@
           ],
           "answer_template": "①看跳跃点；②算每点跳跃高度；③列分布律；④检查概率和为 1。"
         },
-        "homework_weight": 0.95
+        "homework_weight": 0.95,
+        "formula_tex": "F(x)=P(X\\le x)"
       },
       {
         "id": "t11",
@@ -1014,7 +1024,8 @@
           ],
           "answer_template": "①判断独立/离散；②写 F_Z；③画区域定限；④求导或并项；⑤写分段。"
         },
-        "homework_weight": 1.0
+        "homework_weight": 1.0,
+        "formula_tex": "F_{\\max}(z)=F_X(z)F_Y(z)\\quad\\text{（独立时）}"
       },
       {
         "id": "t12",
@@ -1076,7 +1087,8 @@
           ],
           "answer_template": "①判断概型；②数样本点/画区域；③算比值；④超过 2 分钟先跳过。"
         },
-        "homework_weight": 0.9
+        "homework_weight": 0.9,
+        "formula_tex": "P(A)=\\frac{\\text{有利结果数}}{\\text{总结果数}}"
       }
     ],
     "cards": [
@@ -1387,7 +1399,12 @@
         "explanation": "互斥的意思是 A、B 不能同时发生，所以 P(AB)=0。A−B 表示“A 发生但 B 不发生”；既然 B 不可能和 A 同时发生，A−B 仍然等于 A，因此 P(A−B)=P(A)。P(A)、P(B) 都大于 0 时 P(AB)=0 不等于 P(A)P(B)，所以 A、D 错；P(A∪B)=P(A)+P(B)>P(A)，C 错。只有 B 正确。",
         "difficulty": 1,
         "source": "精编仿真练习",
-        "family_id": "family_event_probability"
+        "family_id": "family_event_probability",
+        "symbol_notes": [
+          "A、B 是两个事件。",
+          "互斥 = 不能同时发生：A∩B=∅，所以 P(AB)=0。",
+          "A−B = A 发生但 B 不发生；互斥时 B 不会和 A 同时发生，所以 A−B=A。"
+        ]
       },
       {
         "id": "q002",
