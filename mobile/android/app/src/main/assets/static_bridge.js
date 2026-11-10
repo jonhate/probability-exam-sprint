@@ -205,7 +205,7 @@
     else if (!plan.length) status = (!candidates.length && waiting.length) ? "waiting" : "short_budget";
     return {
       status, tasks: plan, topics: rows, session_minutes: session, session_remaining: sessionRemaining,
-      daily_remaining: remaining, tracked_minutes: Math.round(spent), days_left: days,
+      daily_minutes: daily, daily_remaining: remaining, tracked_minutes: Math.round(spent), days_left: days,
       next_review_at: waiting.length ? waiting.sort()[0] : null,
       evidence_rule_version: 2,
       independent_topics: rows.filter((r) => ["independent", "transfer", "retained"].includes(r.state)).length,
