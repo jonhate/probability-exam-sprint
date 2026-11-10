@@ -88,12 +88,24 @@
   // The curated pack stores formulas as readable Unicode. Turn the few
   // LaTeX-like sub/superscript fragments into real typography so beginners
   // do not have to parse raw braces in formula boxes.
-  function formulaHTML(text) {
+  function formulaHTML(text, tex) {
+    if (tex && window.katex) return `<span class="math-tex" data-tex="${esc(tex)}"></span>`;
     return esc(text || "")
       .replace(/_\{([^}]*)\}/g, "<sub>$1</sub>")
       .replace(/\^\{([^}]*)\}/g, "<sup>$1</sup>")
       .replace(/([A-Za-z0-9)])\^([A-Za-z0-9+\-]+)/g, "$1<sup>$2</sup>")
       .replace(/([A-Za-z])_([A-Za-z0-9]+)/g, "$1<sub>$2</sub>");
+  }
+
+  function hydrateMath(root = document) {
+    if (!window.katex) return;
+    $$("[data-tex]", root).forEach((el) => {
+      const tex = el.getAttribute("data-tex");
+      if (!tex) return;
+      try {
+        el.innerHTML = katex.renderToString(tex, { throwOnError: false, displayMode: true, strict: "ignore" });
+      } catch (_) { /* keep the readable formula text */ }
+    });
   }
 
   function icon(name) { return `<span data-icon="${name}"></span>`; }
@@ -228,6 +240,7 @@
       root.innerHTML = renderOnboarding();
     }
     hydrateIcons(root);
+    hydrateMath(root);
     wireUploads(root);
     renderModal();
     renderAskMessages();
@@ -585,7 +598,7 @@
           <div>
             <div class="guide-block"><div class="guide-label">2 分钟建立直觉</div><div class="guide-text">${rich(g.two_minute || "资料未展开。")}</div></div>
             <div class="guide-block"><div class="guide-label">考试必须掌握</div><ul class="guide-list">${(g.core || t.key_points || []).map((x) => `<li>${esc(x)}</li>`).join("") || "<li>资料未展开</li>"}</ul></div>
-            ${g.formula || t.formula ? `<div class="guide-block"><div class="guide-label">公式 / 判定式</div><div class="formula-box">${formulaHTML(g.formula || t.formula)}</div></div>` : ""}
+            ${g.formula || t.formula ? `<div class="guide-block"><div class="guide-label">公式 / 判定式</div><div class="formula-box">${formulaHTML(g.formula || t.formula, g.formula_tex || t.formula_tex)}</div></div>` : ""}
           </div>
           <div>
             <div class="guide-block"><div class="guide-label">最小例子 / 自检</div><div class="guide-text">${rich(g.worked_example || "资料未给出例题。")}</div></div>
@@ -648,7 +661,7 @@
         <div class="guide-sections">
           <div class="guide-section full"><h4>2 分钟建立直觉</h4><div class="big-text">${rich(g.two_minute || "资料未展开。")}</div></div>
           <div class="guide-section"><h4>考试必须掌握</h4><ul class="guide-list">${(g.core || t.key_points || []).map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>
-          <div class="guide-section"><h4>公式 / 判定式</h4>${g.formula || t.formula ? `<div class="formula-box">${formulaHTML(g.formula || t.formula)}</div>` : `<div class="muted small">资料未给出公式。</div>`}<h4 style="margin-top:15px">记忆钩子</h4><div class="big-text">${rich(g.memory_hook || "")}</div></div>
+          <div class="guide-section"><h4>公式 / 判定式</h4>${g.formula || t.formula ? `<div class="formula-box">${formulaHTML(g.formula || t.formula, g.formula_tex || t.formula_tex)}</div>` : `<div class="muted small">资料未给出公式。</div>`}<h4 style="margin-top:15px">记忆钩子</h4><div class="big-text">${rich(g.memory_hook || "")}</div></div>
           <div class="guide-section full"><h4>最小例子 / 自检</h4><div class="big-text">${rich(g.worked_example || "资料未展开。")}</div></div>
           <div class="guide-section"><h4>易错点</h4><div class="trap-box"><ul class="guide-list" style="padding-left:15px">${(g.traps || []).map((x) => `<li>${esc(x)}</li>`).join("") || "<li>注意适用条件。</li>"}</ul></div></div>
           <div class="guide-section"><h4>简答 / 论述骨架</h4><div class="big-text">${rich(g.answer_template || "先结论，再条件，再应用。")}</div></div>
@@ -753,6 +766,7 @@
         <div class="qmeta"><span class="badge badge-accent">${TYPE_LABEL[q.type] || q.type}</span><span class="badge badge-muted">${esc(q.topic || "综合")}</span><span class="badge badge-gold">难度 ${q.difficulty || 2}/5</span>${q.source ? `<span class="badge">${esc(q.source)}</span>` : ""}</div>
         ${s.task ? `<div class="info-box">${esc(s.task.title)} · 约 ${s.task.minutes} 分钟<br>${esc(s.task.criterion)}</div>` : ''}
         <div class="qstem">${rich(q.stem)}</div>
+        ${symbolNotesHTML(q)}
         ${!s.submitted ? `<div class="learning-help"><button class="btn btn-sm" data-action="practice-help">${s.assisted ? '已使用辅助' : '卡住了：看必要讲解'}</button><label><input type="checkbox" id="practiceAssisted" ${s.assisted ? 'checked' : ''}> 我使用了提示或查阅了资料</label>${s.assisted ? `<div class="info-box">${rich(guide.guide || guide.two_minute || '先列已知条件，确认题目要求，再写第一步。')}<br>${rich(guide.example || guide.worked_example || '')}</div>` : ''}</div>` : ''}
         ${isOpen ? `<div class="answer-area"><textarea id="practiceAnswer" placeholder="写出你的答案。先列关键词，再补成句子。" ${s.submitted ? "disabled" : ""}>${esc(s.openAnswer || "")}</textarea></div>` : `<div class="options">${optionHTML(q, selected, s.submitted, correctSet, objective)}</div>`}
         ${s.submitted ? practiceFeedbackHTML(q, s) : ""}
@@ -761,6 +775,12 @@
         </div>
       </div>
     </div>`;
+  }
+
+  function symbolNotesHTML(q) {
+    const notes = Array.isArray(q.symbol_notes) ? q.symbol_notes : [];
+    if (!notes.length) return "";
+    return `<details class="symbol-card"><summary>符号说明：先看这里，再看题</summary><ul>${notes.map((x) => `<li>${rich(x)}</li>`).join("")}</ul></details>`;
   }
 
   function optionHTML(q, selected, submitted, correctSet, objective) {
@@ -1025,7 +1045,7 @@
       return `<div class="mock-q"><div class="mock-q-head"><b>${n}.</b><span class="badge badge-muted">${TYPE_LABEL[q.type] || q.type}</span><span class="tiny muted">${esc(q.topic || "")}</span></div><div class="qstem">${rich(q.stem)}</div><textarea class="answer-area" style="width:100%;min-height:120px;border:1px solid var(--line-strong);border-radius:10px;padding:11px" data-mock-text="${esc(q.id)}" placeholder="写出答案要点…">${esc(ans || "")}</textarea></div>`;
     }
     const options = q.type === "judge" && !(q.options || []).length ? ["对", "错"] : (q.options || []);
-    return `<div class="mock-q"><div class="mock-q-head"><b>${n}.</b><span class="badge badge-muted">${TYPE_LABEL[q.type] || q.type}</span><span class="tiny muted">${esc(q.topic || "")}</span></div><div class="qstem">${rich(q.stem)}</div><div class="options">${options.map((opt, i) => {
+    return `<div class="mock-q"><div class="mock-q-head"><b>${n}.</b><span class="badge badge-muted">${TYPE_LABEL[q.type] || q.type}</span><span class="tiny muted">${esc(q.topic || "")}</span></div><div class="qstem">${rich(q.stem)}</div>${symbolNotesHTML(q)}<div class="options">${options.map((opt, i) => {
       const letter = q.type === "judge" ? (i === 0 ? "对" : "错") : String.fromCharCode(65 + i);
       const selected = q.type === "multiple" ? (ans || []).includes(letter) : ans === letter;
       return `<button class="option ${selected ? "selected" : ""}" data-mock-opt="${esc(letter)}" data-qid="${esc(q.id)}" data-qtype="${esc(q.type)}"><span class="opt-letter">${esc(letter)}</span><span>${esc(cleanOption(opt, i))}</span></button>`;
