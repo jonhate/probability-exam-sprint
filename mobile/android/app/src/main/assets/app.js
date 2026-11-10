@@ -79,8 +79,21 @@
     let s = esc(text || "");
     s = s.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
     s = s.replace(/`([^`]+)`/g, '<span class="code">$1</span>');
+    s = s.replace(/_\{([^}]*)\}/g, "<sub>$1</sub>");
+    s = s.replace(/\^\{([^}]*)\}/g, "<sup>$1</sup>");
     s = s.replace(/\n/g, "<br>");
     return s;
+  }
+
+  // The curated pack stores formulas as readable Unicode. Turn the few
+  // LaTeX-like sub/superscript fragments into real typography so beginners
+  // do not have to parse raw braces in formula boxes.
+  function formulaHTML(text) {
+    return esc(text || "")
+      .replace(/_\{([^}]*)\}/g, "<sub>$1</sub>")
+      .replace(/\^\{([^}]*)\}/g, "<sup>$1</sup>")
+      .replace(/([A-Za-z0-9)])\^([A-Za-z0-9+\-]+)/g, "$1<sup>$2</sup>")
+      .replace(/([A-Za-z])_([A-Za-z0-9]+)/g, "$1<sub>$2</sub>");
   }
 
   function icon(name) { return `<span data-icon="${name}"></span>`; }
@@ -307,6 +320,12 @@
     const messages = { session_done: "这一段完成了。先休息；准备好后继续下一段，我会接着安排。", expired: "考试日期已过，请在资料箱更新日期后安排下一轮。", rest: "今天记录的训练已用完预算，先休息。", waiting: "这一项需要间隔复测，稍后回来；到时间我会给你下一步。", short_budget: "现在只剩一点时间。跟我说“继续”，我先给你一个 5 分钟的小任务。", no_questions: "先在资料箱准备可练习的题目。" };
     const task = l.tasks?.[0];
     const more = (l.tasks?.length || 0) > 1 ? `后面还有 ${l.tasks.length - 1} 个候补，做完这一题我会自动重排，不需要你挑。` : "";
+    const dailyTotal = Math.max(1, Number(l.daily_minutes) || 0);
+    const dailyDone = Math.max(0, Number(l.tracked_minutes) || 0);
+    const dailyPercent = pct(dailyDone / dailyTotal * 100);
+    const topicTotal = Math.max(1, (l.topics || []).length);
+    const topicDone = Number(l.independent_topics) || 0;
+    const topicPercent = pct(topicDone / topicTotal * 100);
     const emptyAction = {
       session_done: `<button class="btn btn-accent" data-action="continue-session">开始下一段（15 分钟）</button>`,
       expired: `<button class="btn btn-accent" data-nav="docs">去更新考试日期</button>`,
@@ -329,7 +348,12 @@
         ${l.next_review_at ? `<p>最早复测：${esc(new Date(l.next_review_at).toLocaleString())}</p>` : ""}
         <div class="hero-actions">${emptyAction}<button class="btn" data-nav="docs">调整考试设置</button></div>
       </section>`;
-    return `<div class="page-head"><div><div class="eyebrow">NEXT STEP</div><h1>别想了，跟我做这一步</h1><p>我已经按考点性价比和你的作答记录排好顺序。你只负责做，我负责决定下一步。</p></div></div>
+    return `<div class="page-head"><div><div class="eyebrow">NEXT STEP</div><h1>跟我做这一步</h1><p>已经排好顺序；你只负责做，我负责决定下一步。</p></div></div>
+    <div class="daily-progress card card-pad">
+      <div class="daily-progress-head"><div><b>今天已经学了 ${dailyDone} / ${dailyTotal} 分钟</b><span>${dailyPercent}%</span></div><span class="small muted">今天的目标是 ${dailyTotal} 分钟，不用自己算“学到哪”</span></div>
+      <div class="bar"><span style="width:${dailyPercent}%"></span></div>
+      <div class="daily-progress-foot"><span>课程覆盖：${topicDone}/${topicTotal} 个考点有独立作答记录</span><span class="bar bar-sm"><span style="width:${topicPercent}%"></span></span></div>
+    </div>
     ${focus}
     <details class="learning-advanced">
       <summary>时间不够 / 想自己调一下本次预算</summary>
@@ -483,6 +507,7 @@
     const best = Number(insights().best_mock || 0);
     const stage = best >= 95 ? "100" : best >= 60 ? "80" : "60";
     return `<div class="page-head"><div><div class="eyebrow">ZERO BASE / 00</div><h1>${esc(z.title || "零基础三级冲刺：60 → 80 → 100")}</h1><p>先用模板保 60，再用二维/变量函数冲 80，最后用“零失误”挑战 100。每一级有门槛，达不到不硬升。</p></div><span class="badge badge-accent">${esc(z.target)}</span></div>
+    <div class="zero-backbar"><button type="button" class="btn btn-sm btn-accent" data-nav="dashboard">← 回到今天的学习任务</button><span>基础工具随时可以回，不会锁住进度。</span></div>
     <div class="zero-hero">
       <div class="zero-main">
         <div class="kicker"><span class="dot"></span> 先接受现实，再开始抢分</div>
@@ -509,7 +534,7 @@
     <div class="zero-modules">${modules.map((m, i) => renderZeroModule(m, i)).join("")}</div>
     <div class="section-head" id="zeroDiag"><div><h2>零基础诊断：只测工具，不测智商</h2><p>不会就点“补工具”，不用内疚。10 题里会 6 题就可以开始 M1。</p></div><span class="badge badge-green">约 15 分钟</span></div>
     <div class="diag-grid">${(z.diagnostic || []).map((d, i) => `<div class="diag-card"><div class="dq"><b>${i + 1}.</b> ${esc(d.q)}</div><details><summary>看答案 / 补工具</summary><div class="da">${esc(d.a)} <button class="text-btn" data-zero-tool-open="${esc(d.tool)}">打开工具卡</button></div></details></div>`).join("")}</div>
-    <div class="zero-footer-cta"><h3>今天只做一件事：把 M1 的 5 步抄 3 遍</h3><p>不要打开 PPT 第一页。M1 是 10 分，且完全不需要高数。</p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn btn-accent" data-topic-study="t01">${icon("book")} 打开 Bayes 速学卡</button><button class="btn" data-topic-practice="t01">${icon("pencil")} 做 Bayes 基础题</button></div></div>`;
+    <div class="zero-footer-cta"><h3>今天只做一件事：把 M1 的 5 步抄 3 遍</h3><p>不要打开 PPT 第一页。M1 是 10 分，且完全不需要高数。</p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn btn-accent" data-topic-study="t01">${icon("book")} 打开 Bayes 速学卡</button><button class="btn" data-topic-practice="t01">${icon("pencil")} 做 Bayes 基础题</button><button class="btn" data-nav="dashboard">← 回到今日任务</button></div></div>`;
   }
 
   function renderZeroModule(m, index) {
@@ -560,7 +585,7 @@
           <div>
             <div class="guide-block"><div class="guide-label">2 分钟建立直觉</div><div class="guide-text">${rich(g.two_minute || "资料未展开。")}</div></div>
             <div class="guide-block"><div class="guide-label">考试必须掌握</div><ul class="guide-list">${(g.core || t.key_points || []).map((x) => `<li>${esc(x)}</li>`).join("") || "<li>资料未展开</li>"}</ul></div>
-            ${g.formula || t.formula ? `<div class="guide-block"><div class="guide-label">公式 / 判定式</div><div class="formula-box">${esc(g.formula || t.formula)}</div></div>` : ""}
+            ${g.formula || t.formula ? `<div class="guide-block"><div class="guide-label">公式 / 判定式</div><div class="formula-box">${formulaHTML(g.formula || t.formula)}</div></div>` : ""}
           </div>
           <div>
             <div class="guide-block"><div class="guide-label">最小例子 / 自检</div><div class="guide-text">${rich(g.worked_example || "资料未给出例题。")}</div></div>
@@ -623,7 +648,7 @@
         <div class="guide-sections">
           <div class="guide-section full"><h4>2 分钟建立直觉</h4><div class="big-text">${rich(g.two_minute || "资料未展开。")}</div></div>
           <div class="guide-section"><h4>考试必须掌握</h4><ul class="guide-list">${(g.core || t.key_points || []).map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>
-          <div class="guide-section"><h4>公式 / 判定式</h4>${g.formula || t.formula ? `<div class="formula-box">${esc(g.formula || t.formula)}</div>` : `<div class="muted small">资料未给出公式。</div>`}<h4 style="margin-top:15px">记忆钩子</h4><div class="big-text">${rich(g.memory_hook || "")}</div></div>
+          <div class="guide-section"><h4>公式 / 判定式</h4>${g.formula || t.formula ? `<div class="formula-box">${formulaHTML(g.formula || t.formula)}</div>` : `<div class="muted small">资料未给出公式。</div>`}<h4 style="margin-top:15px">记忆钩子</h4><div class="big-text">${rich(g.memory_hook || "")}</div></div>
           <div class="guide-section full"><h4>最小例子 / 自检</h4><div class="big-text">${rich(g.worked_example || "资料未展开。")}</div></div>
           <div class="guide-section"><h4>易错点</h4><div class="trap-box"><ul class="guide-list" style="padding-left:15px">${(g.traps || []).map((x) => `<li>${esc(x)}</li>`).join("") || "<li>注意适用条件。</li>"}</ul></div></div>
           <div class="guide-section"><h4>简答 / 论述骨架</h4><div class="big-text">${rich(g.answer_template || "先结论，再条件，再应用。")}</div></div>
@@ -701,6 +726,7 @@
             <button class="btn btn-accent btn-lg" data-start-practice="10">${icon("pencil")} 10 题快刷</button>
             <button class="btn btn-lg" data-start-practice="20">20 题混合</button>
             <button class="btn btn-lg" data-start-practice="all">全部题</button>
+            <button class="btn btn-lg" data-start-practice="hard">${icon("target")} 进阶 20 题</button>
             <button class="btn btn-lg" data-start-practice="booklet">${icon("book")} 小册子作业 ${booklet} 题</button>
           </div>
           <p class="muted small" style="margin-top:14px">建议：先做 10 题诊断，正确率低于 60% 就回速学卡；高于 80% 直接进模拟考。</p>
@@ -795,7 +821,8 @@
       <p><b>你的答案：</b>${esc(s.answerDisplay || "（未作答）")}</p>
       <p><b>参考答案：</b>${esc(Array.isArray(q.answer) ? q.answer.join("、") : q.answer)}</p>
       ${q.rubric ? `<p><b>评分点：</b>${esc(q.rubric)}</p>` : ""}
-      ${q.explanation ? `<p><b>解析：</b>${esc(q.explanation)}</p>` : ""}${!good ? `<div class="hero-actions"><button class="btn btn-sm btn-accent" data-action="practice-retry">立即纠错：看解析重做</button><button class="btn btn-sm" data-action="practice-verify">换新题独立验证</button></div>` : ""}</div>`;
+      ${q.explanation ? `<p><b>解析：</b>${esc(q.explanation)}</p>` : ""}
+      ${!good ? `<details class="zero-breakdown"><summary>零基础拆解：先照着步骤看</summary><ol>${rubricSteps(q).map((step) => `<li>${esc(step)}</li>`).join("") || "<li>先写适用条件，再代入公式。</li>"}</ol></details><div class="hero-actions"><button class="btn btn-sm btn-accent" data-action="practice-retry">立即纠错：看解析重做</button><button class="btn btn-sm" data-action="practice-verify">换新题独立验证</button></div>` : ""}</div>`;
   }
 
   function startPractice(mode = "10", topicId = null) {
@@ -807,6 +834,7 @@
     }
     if (mode === "wrong") qs = wrongQuestions().map((x) => x.q);
     if (mode === "booklet") qs = qs.filter((q) => String(q.source || "").includes("小册子"));
+    if (mode === "hard") qs = qs.filter((q) => Number(q.difficulty || 1) >= 3);
     if (!qs.length) { toast("这个范围暂时没有题", "error"); return; }
     const priorities = new Map((analysis()?.topics || []).map((t) => [t.id, Number(t.priority) || 0]));
     const lastAttempt = (q) => (progress().questions?.[q.id]?.attempts || []).slice(-1)[0];
@@ -814,8 +842,8 @@
     qs = [...qs].sort((a, b) => bucket(a) - bucket(b)
       || (priorities.get(b.topic_id) || 0) - (priorities.get(a.topic_id) || 0)
       || String(lastAttempt(a)?.at || "").localeCompare(String(lastAttempt(b)?.at || "")));
-    if (mode !== "all" && mode !== "wrong" && mode !== "booklet") qs = qs.slice(0, Number(mode) || 10);
-    if (mode === "booklet") qs = qs.slice(0, 20);
+    if (mode !== "all" && mode !== "wrong" && mode !== "booklet" && mode !== "hard") qs = qs.slice(0, Number(mode) || 10);
+    if (mode === "booklet" || mode === "hard") qs = qs.slice(0, 20);
     const prior = lastAttempt(qs[0]);
     const exposed = !!prior && Date.now() - new Date(prior.at).getTime() < 30 * 60 * 1000;
     S.practice = { questions: qs, index: 0, selected: [], openAnswer: "", submitted: false, result: null, recorded: false, correct: 0, answered: 0, answerDisplay: "", startedAt: Date.now(), assisted: false, answerExposed: exposed };
